@@ -37,7 +37,7 @@ Mesh3D fromAssimpMesh(const aiMesh* mesh, const aiScene* scene, const std::files
 	std::unordered_map<std::filesystem::path, Texture>& loadedTextures) {
 	std::vector<Vertex3D> vertices;
 
-	// TODO: fill in this vertices list, by iterating over each element of 
+	// DONE: fill in this vertices list, by iterating over each element of 
 	// the mVertices field of the aiMesh pointer. Each element of mVertices
 	// has x, y, and z values that you can use to construct a Vertex3D object.
 	// To find the u and v texture coordinates of a vertex, access the 
@@ -50,7 +50,7 @@ Mesh3D fromAssimpMesh(const aiMesh* mesh, const aiScene* scene, const std::files
 		auto& normal = mesh->mNormals[i];
 
 		// See above.
-
+		vertices.emplace_back(meshVertex.x, meshVertex.y, meshVertex.z, normal.x, normal.y, normal.z, texCoord.x, texCoord.y);
 
 
 
@@ -65,7 +65,9 @@ Mesh3D fromAssimpMesh(const aiMesh* mesh, const aiScene* scene, const std::files
 	for (size_t i = 0; i < mesh->mNumFaces; i++) {
 		auto& meshFace = mesh->mFaces[i];
 		// See above.
-
+		for (size_t j = 0; j < meshFace.mNumIndices; j++) {
+			faces.push_back(meshFace.mIndices[j]);
+		}
 
 
 	}

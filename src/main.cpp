@@ -194,7 +194,7 @@ int main() {
 	glEnable(GL_DEPTH_TEST);
 
 	// Inintialize scene objects.
-	auto myScene = lifeOfPi();
+	auto myScene = bunny();
 	// You can directly access specific objects in the scene using references.
 	auto& firstObject = myScene.objects[0];
 
