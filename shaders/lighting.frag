@@ -30,12 +30,34 @@ uniform vec3 viewPos;
 
 
 void main() {
-    // TODO: using the lecture notes, compute ambientIntensity, diffuseIntensity, 
+    // DONE: using the lecture notes, compute ambientIntensity, diffuseIntensity, 
     // and specularIntensity.
 
-    vec3 ambientIntensity = vec3(0);
+    // Ambient
+    vec3 ambientIntensity = material.x * ambientColor;
+
+    // Diffuse components
     vec3 diffuseIntensity = vec3(0);
+    vec3 norm = normalize(Normal);
+    vec3 lightDir = inverse(directionalLight);
+    float lambertFactor = dot(norm, normalize(lightDir));
+
+    // Specular components
     vec3 specularIntensity = vec3(0);
+
+    // Lambert calculations can be combined
+    if (lambertFactor > 0) {
+        // Diffuse Lambert logic
+        diffuseIntensity = material.y * directionalColor * lambertFactor;
+
+        // Specular Lambert logic
+        vec3 eyeDir = normalize(viewPos - FragWorldPos);
+        vec3 reflectDir = normalize(reflect(-lightDir, norm));
+        float spec = dot(reflectDir, eyeDir);
+        if (spec > 0){
+            specularIntensity = material.z * directionalColor * pow(spec, material.w);
+        }
+    }
 
     vec3 lightIntensity = ambientIntensity + diffuseIntensity + specularIntensity;
     FragColor = vec4(lightIntensity, 1) * texture(baseTexture, TexCoord);

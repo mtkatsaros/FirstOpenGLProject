@@ -22,6 +22,6 @@ void main() {
     mat4 normalMatrix = transpose(inverse(model));
     Normal = mat3(normalMatrix) * vNormal;
     
-    // TODO: transform the vertex position into world space, and assign it to FragWorldPos.
-
+    // DONE: transform the vertex position into world space, and assign it to FragWorldPos.
+    FragWorldPos = vec3(model * vec4(vPosition, 1.0));
 }
