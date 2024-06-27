@@ -29,7 +29,17 @@ struct Scene {
 	std::vector<Animator> animators;
 };
 
-//directional lighting for the scene
+/**
+* @brief Adds directional lighting to the scene using Phong lighting shader
+*/
+void addDirectionalLight(ShaderProgram &program, glm::vec4 material, glm::vec3 ambientColor, 
+	glm::vec3 directionalLight, glm::vec3 directionalColor) {
+	program.activate();
+	program.setUniform("material", material);
+	program.setUniform("ambientColor", ambientColor);
+	program.setUniform("directionalLight", directionalLight);
+	program.setUniform("directionalColor", directionalColor);
+}
 
 
 /**
@@ -78,10 +88,6 @@ Texture loadTexture(const std::filesystem::path& path, const std::string& sample
 Scene bunny() {
 	Scene scene{ phongLightingShader() };
 
-	
-
-
-
 	// We assume that (0,0) in texture space is the upper left corner, but some artists use (0,0) in the lower
 	// left corner. In that case, we have to flip the V-coordinate of each UV texture location. The last parameter
 	// to assimpLoad controls this. If you load a model and it looks very strange, try changing the last parameter.
@@ -90,18 +96,11 @@ Scene bunny() {
 	bunny.move(glm::vec3(0.2, -1, 0));
 
 	//add directional light
-	glm::vec4 material(0.0, 0.2, 0.5, 32);
-	glm::vec3 ambientColor(1,1,1);
-	glm::vec3 directionalLight(0,0,-1);
-	glm::vec3 directionalColor(1, 1, 1);
-
-	scene.program.activate();
-	scene.program.setUniform("material", material);
-	scene.program.setUniform("ambientColor", ambientColor);
-	scene.program.setUniform("directionalLight", directionalLight);
-	scene.program.setUniform("directionalColor", directionalColor);
-
-
+	glm::vec4 material = glm::vec4(0.3, 1, 0.5, 32);
+	glm::vec3 ambientColor = glm::vec3(1,1,0.8);
+	glm::vec3 directionalLight = glm::vec3(0,-1,0);
+	glm::vec3 directionalColor = glm::vec3(1, 1, 0.8);
+	addDirectionalLight(scene.program, material, ambientColor, directionalLight, directionalColor);
 
 	// Move all objects into the scene's objects list.
 	scene.objects.push_back(std::move(bunny));
