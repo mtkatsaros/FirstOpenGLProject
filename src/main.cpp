@@ -29,6 +29,9 @@ struct Scene {
 	std::vector<Animator> animators;
 };
 
+//directional lighting for the scene
+
+
 /**
  * @brief Constructs a shader program that applies the Phong reflection model.
  */
@@ -73,7 +76,11 @@ Texture loadTexture(const std::filesystem::path& path, const std::string& sample
 *  DEMONSTRATION SCENES
 *****************************************************************************************/
 Scene bunny() {
-	Scene scene{ texturingShader() };
+	Scene scene{ phongLightingShader() };
+
+	
+
+
 
 	// We assume that (0,0) in texture space is the upper left corner, but some artists use (0,0) in the lower
 	// left corner. In that case, we have to flip the V-coordinate of each UV texture location. The last parameter
@@ -81,7 +88,21 @@ Scene bunny() {
 	auto bunny = assimpLoad("models/bunny_textured.obj", true);
 	bunny.grow(glm::vec3(9, 9, 9));
 	bunny.move(glm::vec3(0.2, -1, 0));
-	
+
+	//add directional light
+	glm::vec4 material(0.0, 0.2, 0.5, 32);
+	glm::vec3 ambientColor(1,1,1);
+	glm::vec3 directionalLight(0,0,-1);
+	glm::vec3 directionalColor(1, 1, 1);
+
+	scene.program.activate();
+	scene.program.setUniform("material", material);
+	scene.program.setUniform("ambientColor", ambientColor);
+	scene.program.setUniform("directionalLight", directionalLight);
+	scene.program.setUniform("directionalColor", directionalColor);
+
+
+
 	// Move all objects into the scene's objects list.
 	scene.objects.push_back(std::move(bunny));
 	// Now the "bunny" variable is empty; if we want to refer to the bunny object, we need to reference 

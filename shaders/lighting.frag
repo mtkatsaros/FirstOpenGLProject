@@ -39,7 +39,7 @@ void main() {
     // Diffuse components
     vec3 diffuseIntensity = vec3(0);
     vec3 norm = normalize(Normal);
-    vec3 lightDir = inverse(directionalLight);
+    vec3 lightDir = -directionalLight;
     float lambertFactor = dot(norm, normalize(lightDir));
 
     // Specular components
