@@ -32,13 +32,12 @@ struct Scene {
 /**
 * @brief Adds directional lighting to the scene using Phong lighting shader
 */
-void addDirectionalLight(ShaderProgram &program, glm::vec4 material, glm::vec3 ambientColor, 
-	glm::vec3 directionalLight, glm::vec3 directionalColor) {
-	program.activate();
-	program.setUniform("material", material);
-	program.setUniform("ambientColor", ambientColor);
-	program.setUniform("directionalLight", directionalLight);
-	program.setUniform("directionalColor", directionalColor);
+void addDirectionalLight(ShaderProgram &program, glm::vec3 direction, glm::vec3 ambient, 
+	glm::vec3 diffuse, glm::vec3 specular) {
+	program.setUniform("dirLight.direction", direction);
+	program.setUniform("dirLight.ambient", ambient);
+	program.setUniform("dirLight.diffuse", diffuse);
+	program.setUniform("dirLight.specular", specular);
 }
 
 
@@ -95,12 +94,16 @@ Scene bunny() {
 	bunny.grow(glm::vec3(9, 9, 9));
 	bunny.move(glm::vec3(0.2, -1, 0));
 
-	//add directional light
-	glm::vec4 material = glm::vec4(0.3, 1, 0.5, 32);
-	glm::vec3 ambientColor = glm::vec3(1,1,0.8);
-	glm::vec3 directionalLight = glm::vec3(0,-1,0);
-	glm::vec3 directionalColor = glm::vec3(1, 1, 0.8);
-	addDirectionalLight(scene.program, material, ambientColor, directionalLight, directionalColor);
+	//Initialize light values
+	scene.program.activate();
+	scene.program.setUniform("material.shininess", 32.0f); //specify so setUniform knows which to use
+
+	// Add directional light
+	glm::vec3 direction = glm::vec3(0, 0, -1);
+	glm::vec3 ambient = glm::vec3(0.1,0.1,0.08);
+	glm::vec3 diffuse = glm::vec3(0,0,0);
+	glm::vec3 specular = glm::vec3(1, 1, .8);
+	addDirectionalLight(scene.program, direction, ambient, diffuse, specular);
 
 	// Move all objects into the scene's objects list.
 	scene.objects.push_back(std::move(bunny));
