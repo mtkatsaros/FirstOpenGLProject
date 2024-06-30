@@ -23,6 +23,12 @@ We now transform local space vertices to clip space using uniform matrices in th
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/Window.hpp>
 
+// Constant to set max point lights
+const int MAX_POINT_LIGHTS = 10;
+
+// Constant to set max spotlights
+const int MAX_SPOTLIGHTS = 10;
+
 struct Scene {
 	ShaderProgram program;
 	std::vector<Object3D> objects;
@@ -38,6 +44,16 @@ void addDirectionalLight(ShaderProgram &program, glm::vec3 direction, glm::vec3 
 	program.setUniform("dirLight.ambient", ambient);
 	program.setUniform("dirLight.diffuse", diffuse);
 	program.setUniform("dirLight.specular", specular);
+}
+
+
+/**
+* @brief Adds a point light to the scene using Phong lighting shader and attenuation
+*/
+void addPointLight(ShaderProgram& program, glm::vec3 position, float constant,
+float linear, float quadratic, glm::vec3 ambient, glm::vec3 diffuse,
+glm::vec3 specular, int pointLightIndex) {
+	
 }
 
 
@@ -98,11 +114,11 @@ Scene bunny() {
 	scene.program.activate();
 	scene.program.setUniform("material.shininess", 32.0f); //specify so setUniform knows which to use
 
-	// Add directional light
-	glm::vec3 direction = glm::vec3(0, 0, -1);
-	glm::vec3 ambient = glm::vec3(0.1,0.1,0.08);
-	glm::vec3 diffuse = glm::vec3(0,0,0);
-	glm::vec3 specular = glm::vec3(1, 1, .8);
+	// Add directional light (high noon)
+	glm::vec3 direction = glm::vec3(0, -1, 0);
+	glm::vec3 ambient = glm::vec3(0.2, 0.2, 0.17);
+	glm::vec3 diffuse = glm::vec3(1, 1, .85);
+	glm::vec3 specular = glm::vec3(1, 1, .85);
 	addDirectionalLight(scene.program, direction, ambient, diffuse, specular);
 
 	// Move all objects into the scene's objects list.
@@ -168,7 +184,7 @@ Scene cube() {
  */
 Scene lifeOfPi() {
 	// This scene is more complicated; it has child objects, as well as animators.
-	Scene scene{ texturingShader() };
+	Scene scene{ phongLightingShader() };
 
 	auto boat = assimpLoad("models/boat/boat.fbx", true);
 	boat.move(glm::vec3(0, -0.7, 0));
@@ -177,6 +193,27 @@ Scene lifeOfPi() {
 	tiger.move(glm::vec3(0, -5, 10));
 	// Move the tiger to be a child of the boat.
 	boat.addChild(std::move(tiger));
+
+
+	//Initialize light values
+	scene.program.activate();
+	scene.program.setUniform("material.shininess", 32.0f); //specify so setUniform knows which to use
+
+	// Add directional light (midnight)
+	glm::vec3 direction = glm::vec3(0, -1, 0);
+	glm::vec3 ambientDir = glm::vec3(0.2, 0.2, 0.2);
+	glm::vec3 diffuseDir = glm::vec3(0, 0, 0);
+	glm::vec3 specularDir = glm::vec3(0.2, 0.2, 0.2);
+	addDirectionalLight(scene.program, direction, ambientDir, diffuseDir, specularDir);
+
+	// Add a point light
+	glm::vec3 position;
+	float constant;
+	float linear;
+	float quadratic;
+	glm::vec3 ambientPoint;
+	glm::vec3 diffusePoint;
+	glm::vec3 specularPoint;
 
 	// Move the boat into the scene list.
 	scene.objects.push_back(std::move(boat));
