@@ -114,10 +114,10 @@ vec3 CalcPointLight(PointLight light, vec3 norm, vec3 eyeDir){
     float attenuation = 1.0 / (light.constant + light.linear * dist + light.quadratic * (dist * dist));
 
     //now calculate the final ambient, diffuse, and specular lighting with attenuation
-    vec3 ambientIntensity = vec3(texture(material.baseTexture, TexCoord)) * light.ambient;// * attenuation;
+    vec3 ambientIntensity = vec3(texture(material.baseTexture, TexCoord)) * light.ambient * attenuation;
     vec3 diffuseIntensity = vec3(0);
 
-    float lambertFactor = max(dot(norm, normalize(lightDir)), 0.0);
+    float lambertFactor = dot(norm, normalize(lightDir));
 
     // Specular components
     vec3 specularIntensity = vec3(0);
@@ -125,25 +125,20 @@ vec3 CalcPointLight(PointLight light, vec3 norm, vec3 eyeDir){
     // Lambert calculations can be combined
     if (lambertFactor > 0) {
         // Diffuse Lambert logic
-        diffuseIntensity = vec3(texture(material.baseTexture, TexCoord)) * light.diffuse * lambertFactor;// * attenuation;
+        diffuseIntensity = vec3(texture(material.baseTexture, TexCoord)) * light.diffuse * lambertFactor * attenuation;
         vec3 reflectDir = normalize(reflect(-lightDir, norm));
         // Specular Lambert logic
-        float spec = pow(max(dot(reflectDir, eyeDir), 0.0), material.shininess);
-        //if (spec > 0){
-        specularIntensity = vec3(texture(material.specularMap, TexCoord)) * light.specular * spec;// * pow(spec, material.shininess);// * attenuation;
-        //}
+        float spec = dot(reflectDir, eyeDir);
+        if (spec > 0){
+            specularIntensity = vec3(texture(material.specularMap, TexCoord)) * light.specular * pow(spec, material.shininess) * attenuation;
+        }
         
 
     }
-    
-    ambientIntensity *= attenuation;
-    diffuseIntensity *= attenuation;
-    specularIntensity *= attenuation;
 
     return ambientIntensity + diffuseIntensity + specularIntensity;
 
 }
-
 
 // The main driver adds everything together
 void main() {

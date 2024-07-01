@@ -159,11 +159,35 @@ Scene bunny() {
  * that does not come from Assimp.
  */
 Scene marbleSquare() {
-	Scene scene{ texturingShader() };
+	Scene scene{ phongLightingShader() };
 
 	std::vector<Texture> textures = {
 		loadTexture("models/White_marble_03/Textures_2K/white_marble_03_2k_baseColor.tga", "baseTexture"),
 	};
+
+	//Initialize light values
+	scene.program.activate();
+	scene.program.setUniform("material.shininess", 32.0f); //specify so setUniform knows which to use
+
+
+	// Add directional light (none)
+	glm::vec3 direction = glm::vec3(0, -1, 0);
+	glm::vec3 ambientDir = glm::vec3(0, 0, 0);
+	glm::vec3 diffuseDir = glm::vec3(0, 0, 0);
+	glm::vec3 specularDir = glm::vec3(0, 0, 0);
+	addDirectionalLight(scene.program, direction, ambientDir, diffuseDir, specularDir);
+
+	// Add a point light
+	glm::vec3 position = glm::vec3(0, 0, 0);
+	float constant = 1.0;
+	float linear = 0.09;
+	float quadratic = 0.032;
+	glm::vec3 ambientPoint = glm::vec3(0, 0, 0);
+	glm::vec3 diffusePoint = glm::vec3(.8, .8, .6);
+	glm::vec3 specularPoint = glm::vec3(1, 1, .75);
+	addPointLight(scene.program, position, constant, linear, quadratic, ambientPoint, diffusePoint, specularPoint, 0);
+
+
 	auto mesh = Mesh3D::square(textures);
 	auto floor = Object3D(std::vector<Mesh3D>{mesh});
 	floor.grow(glm::vec3(5, 5, 5));
@@ -219,14 +243,14 @@ Scene lifeOfPi() {
 
 	
 	// Add directional light (midnight)
-	glm::vec3 direction = glm::vec3(0, -1, 0);
+	glm::vec3 direction = glm::vec3(10, -1, 0);
 	glm::vec3 ambientDir = glm::vec3(0.05, 0.05, 0.05);
 	glm::vec3 diffuseDir = glm::vec3(0, 0, 0);
 	glm::vec3 specularDir = glm::vec3(0.05, 0.05, 0.05);
 	addDirectionalLight(scene.program, direction, ambientDir, diffuseDir, specularDir);
 
 	// Add a point light
-	glm::vec3 position = glm::vec3(0, 200, 200);
+	glm::vec3 position = glm::vec3(0, 20, 0);
 	float constant = 1.0;
 	float linear = 0.09;
 	float quadratic = 0.032;
@@ -274,7 +298,7 @@ int main() {
 	glEnable(GL_DEPTH_TEST);
 
 	// Inintialize scene objects.
-	auto myScene = lifeOfPi();
+	auto myScene = marbleSquare();
 	// You can directly access specific objects in the scene using references.
 	auto& firstObject = myScene.objects[0];
 
