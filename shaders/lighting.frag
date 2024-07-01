@@ -36,6 +36,20 @@ struct PointLight {
     vec3 specular;
 };
 
+// struct for spotlights
+struct SpotLight {
+    vec3 position;
+    vec3 direction;
+    float cutOff;
+    float outerCutOff;
+    float constant;
+    float linear;
+    float quadratic;
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;       
+};
+
 
 // Inputs: the texture coordinates, world-space normal, and world-space position
 // of this fragment, interpolated between its vertices.
@@ -56,9 +70,13 @@ uniform Material material;
 uniform DirLight dirLight;
 
 // point lights for application. define a constant for array size
-#define MAX_POINT_LIGHTS 10
+#define MAX_POINT_LIGHTS 20
 uniform int numPointLights; //arrays must be defined at compile time, so loop through with this
 uniform PointLight pointLights[MAX_POINT_LIGHTS];
+
+#define MAX_SPOTLIGHTS 10
+uniform int numSpotLights;
+uniform SpotLight spotLights[MAX_SPOTLIGHTS];
 
 // Ambient light color.
 //uniform vec3 ambientColor;
@@ -95,8 +113,6 @@ vec3 CalcDirLight(DirLight light, vec3 norm, vec3 eyeDir){
         float spec = dot(reflectDir, eyeDir);
         if (spec > 0)
             specularIntensity = texture(material.specularMap, TexCoord).x  * light.specular * pow(spec, material.shininess);
-        
-
     }
    
 
@@ -114,14 +130,11 @@ vec3 CalcPointLight(PointLight light, vec3 norm, vec3 eyeDir){
     float attenuation = 1.0 / (light.constant + light.linear * dist + light.quadratic * (dist * dist));
 
     //now calculate the final ambient, diffuse, and specular lighting with attenuation
-    vec3 ambientIntensity = vec3(texture(material.baseTexture, TexCoord)) * light.ambient * attenuation;
     vec3 diffuseIntensity = vec3(0);
-
-    float lambertFactor = dot(norm, normalize(lightDir));
-
-    // Specular components
     vec3 specularIntensity = vec3(0);
 
+    vec3 ambientIntensity = vec3(texture(material.baseTexture, TexCoord)) * light.ambient * attenuation;
+    float lambertFactor = dot(norm, normalize(lightDir));
     // Lambert calculations can be combined
     if (lambertFactor > 0) {
         // Diffuse Lambert logic
@@ -131,9 +144,50 @@ vec3 CalcPointLight(PointLight light, vec3 norm, vec3 eyeDir){
         float spec = dot(reflectDir, eyeDir);
         if (spec > 0)
             specularIntensity = vec3(texture(material.specularMap, TexCoord)) * light.specular * pow(spec, material.shininess) * attenuation;
-        
-        
+    }
+    
+    return ambientIntensity + diffuseIntensity + specularIntensity;
 
+}
+
+// Calculates spotlight with specular map
+vec3 CalcSpotLight(SpotLight light, vec3 norm, vec3 eyeDir){
+    vec3 lightDir = normalize(light.position - FragWorldPos);
+
+    // spot lights also use attenuation: the dropoff of intensity of light over a given distance
+    float dist = length(light.position - FragWorldPos);
+    float attenuation = 1.0 / (light.constant + light.linear * dist + light.quadratic * (dist * dist));
+
+    // Spotlights need everything from the other two, as well as a second direction for the light and 
+    // two angles: a cutoff angle and an anlge between the light direction and the spot direction 
+    
+    // Calculate the spotlight intensity with spotlight specific values
+    // theta : the dot product of the light direction and the spot direction
+    float theta = dot(lightDir, normalize(-light.direction));
+    // epsilon : the inner cutoff vs the outer cutoff of the spotlight
+    float epsilon = light.cutOff - light.outerCutOff;
+    // intensity: take these values and "clamp" them, meaning the inner cutoff is 1.0 and the outer cutoff is 0.
+    // essentially a "gradient" of intensities.
+    float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
+
+    //now calculate the final ambient, diffuse, and specular lighting with attenuation
+    vec3 diffuseIntensity = vec3(0);
+
+    // Specular components
+    vec3 specularIntensity = vec3(0);
+   
+    //now apply the intensity to the ambient, specular, and diffuse components
+    vec3 ambientIntensity = vec3(texture(material.baseTexture, TexCoord)) * light.ambient * attenuation * intensity;
+    float lambertFactor = dot(norm, normalize(lightDir));
+    // Lambert calculations can be combined
+    if (lambertFactor > 0) {
+        // Diffuse Lambert logic
+        diffuseIntensity = vec3(texture(material.baseTexture, TexCoord)) * light.diffuse * lambertFactor * attenuation * intensity;
+        vec3 reflectDir = normalize(reflect(-lightDir, norm));
+        // Specular Lambert logic
+        float spec = dot(reflectDir, eyeDir);
+        if (spec > 0)
+            specularIntensity = vec3(texture(material.specularMap, TexCoord)) * light.specular * pow(spec, material.shininess) * attenuation * intensity;
     }
 
     return ambientIntensity + diffuseIntensity + specularIntensity;
@@ -150,10 +204,14 @@ void main() {
     // directional lighting
     vec3 result = CalcDirLight(dirLight, norm, eyeDir);
 
-    //point lighting
+    // point lighting
     for(int i = 0; i < numPointLights; i++)
         result += CalcPointLight(pointLights[i], norm, eyeDir);
-
+    
+    // spotlights
+    for(int i = 0; i < numSpotLights; i++)
+        result += CalcSpotLight(spotLights[i], norm, eyeDir);
+    
     
     FragColor = vec4(result, 1);
 }

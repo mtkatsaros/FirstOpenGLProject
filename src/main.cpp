@@ -24,10 +24,12 @@ We now transform local space vertices to clip space using uniform matrices in th
 #include <SFML/Window/Window.hpp>
 
 // Constant to set max point lights
-const int MAX_POINT_LIGHTS = 10;
+const int MAX_POINT_LIGHTS = 20;
+int currentPointLights;
 
 // Constant to set max spotlights
 const int MAX_SPOTLIGHTS = 10;
+int currentSpotLights;
 
 struct Scene {
 	ShaderProgram program;
@@ -59,6 +61,7 @@ void phongInit(ShaderProgram &program, float shininess) {
 	program.activate();
 	program.setUniform("material.shininess", shininess);
 	program.setUniform("numPointLights", 0); // Modify when point lights are added
+	program.setUniform("numSpotLights", 0); // Modify when spotlights are added
 }
 
 
@@ -80,8 +83,15 @@ void addDirectionalLight(ShaderProgram &program, glm::vec3 direction, glm::vec3 
 void addPointLight(ShaderProgram& program, glm::vec3 position, float constant,
 float linear, float quadratic, glm::vec3 ambient, glm::vec3 diffuse,
 glm::vec3 specular, int pointLightIndex) {	
-	//TODO: set some sort of warning when out of bounds.
-	program.setUniform("numPointLights", pointLightIndex + 1);
+	//DONE: set some sort of warning when out of bounds.
+	if (pointLightIndex >= MAX_POINT_LIGHTS || pointLightIndex < 0) {
+		std::cerr << "Point light index out of bounds. You may see unusual results in your lighting." << std::endl;
+		return;
+	}
+
+	//modify the amount of spot lights on the scene if the new index hits the current array size
+	if(pointLightIndex >= currentPointLights)
+		program.setUniform("numPointLights", pointLightIndex + 1);
 	program.setUniform("pointLights[" + std::to_string(pointLightIndex) + "].position", position);
 	program.setUniform("pointLights[" + std::to_string(pointLightIndex) + "].constant", constant);
 	program.setUniform("pointLights[" + std::to_string(pointLightIndex) + "].linear", linear);
@@ -92,6 +102,31 @@ glm::vec3 specular, int pointLightIndex) {
 }
 
 
+/**
+* @brief Adds a spotlight to the scene using Phong lighting shader, attenuation, and spotlight intensity
+*/
+void addSpotLight(ShaderProgram& program, glm::vec3 position, glm::vec3 direction, float cutOff, float outerCutOff, float constant,
+	float linear, float quadratic, glm::vec3 ambient, glm::vec3 diffuse,
+	glm::vec3 specular, int spotLightIndex) {
+	if (spotLightIndex >= MAX_SPOTLIGHTS || spotLightIndex < 0) {
+		std::cerr << "Spotlight index out of bounds. You may see unusual results in your lighting." << std::endl;
+		return;
+	}
+
+	//modify the amount of spotlights on the scene if the new index hits the current array size
+	if (spotLightIndex >= currentPointLights)
+		program.setUniform("numSpotLights", spotLightIndex + 1);
+	program.setUniform("spotLights[" + std::to_string(spotLightIndex) + "].position", position);
+	program.setUniform("spotLights[" + std::to_string(spotLightIndex) + "].direction", direction);
+	program.setUniform("spotLights[" + std::to_string(spotLightIndex) + "].cutOff", cutOff);
+	program.setUniform("spotLights[" + std::to_string(spotLightIndex) + "].outerCutOff", outerCutOff);
+	program.setUniform("spotLights[" + std::to_string(spotLightIndex) + "].constant", constant);
+	program.setUniform("spotLights[" + std::to_string(spotLightIndex) + "].linear", linear);
+	program.setUniform("spotLights[" + std::to_string(spotLightIndex) + "].quadratic", quadratic);
+	program.setUniform("spotLights[" + std::to_string(spotLightIndex) + "].ambient", ambient);
+	program.setUniform("spotLights[" + std::to_string(spotLightIndex) + "].diffuse", diffuse);
+	program.setUniform("spotLights[" + std::to_string(spotLightIndex) + "].specular", specular);
+}
 
 
 /**
@@ -189,6 +224,7 @@ Scene marbleSquare() {
 	glm::vec3 specularDir = glm::vec3(0, 0, 0);
 	addDirectionalLight(scene.program, direction, ambientDir, diffuseDir, specularDir);
 
+	/*
 	// Add a point light
 	glm::vec3 position = glm::vec3(0, 0, 0);
 	float constant = 1.0;
@@ -198,7 +234,20 @@ Scene marbleSquare() {
 	glm::vec3 diffusePoint = glm::vec3(.8, .8, .6);
 	glm::vec3 specularPoint = glm::vec3(1, 1, .75);
 	addPointLight(scene.program, position, constant, linear, quadratic, ambientPoint, diffusePoint, specularPoint, 0);
+	*/
 
+	// Add a spotlight
+	glm::vec3 position = glm::vec3(0, 10, 0);
+	glm::vec3 directionSpot = glm::vec3(0, -1, 0);
+	float cutOff = std::cos(0.21);
+	float outerCutOff = std::cos(0.26);
+	float constant = 1.0;
+	float linear = 0.09;
+	float quadratic = 0.032;
+	glm::vec3 ambientSpot = glm::vec3(0, 0, 0);
+	glm::vec3 diffuseSpot = glm::vec3(0, 0, 0);
+	glm::vec3 specularSpot = glm::vec3(1, 1, 1);
+	addSpotLight(scene.program, position, direction, cutOff, outerCutOff, constant, linear, quadratic, ambientSpot, diffuseSpot, specularSpot, 0);
 
 	auto mesh = Mesh3D::square(textures);
 	auto floor = Object3D(std::vector<Mesh3D>{mesh});
