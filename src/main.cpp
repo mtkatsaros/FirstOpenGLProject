@@ -53,6 +53,8 @@ void addDirectionalLight(ShaderProgram &program, glm::vec3 direction, glm::vec3 
 void addPointLight(ShaderProgram& program, glm::vec3 position, float constant,
 float linear, float quadratic, glm::vec3 ambient, glm::vec3 diffuse,
 glm::vec3 specular, int pointLightIndex) {	
+	//TODO: set some sort of warning when out of bounds.
+	program.setUniform("numPointLights", pointLightIndex + 1);
 	program.setUniform("pointLights[" + std::to_string(pointLightIndex) + "].position", position);
 	program.setUniform("pointLights[" + std::to_string(pointLightIndex) + "].constant", constant);
 	program.setUniform("pointLights[" + std::to_string(pointLightIndex) + "].linear", linear);
@@ -168,6 +170,7 @@ Scene marbleSquare() {
 	//Initialize light values
 	scene.program.activate();
 	scene.program.setUniform("material.shininess", 32.0f); //specify so setUniform knows which to use
+	scene.program.setUniform("numPointLights", 0); //initialize to zero and modify when lights are added
 
 
 	// Add directional light (none)
@@ -182,7 +185,7 @@ Scene marbleSquare() {
 	float constant = 1.0;
 	float linear = 0.09;
 	float quadratic = 0.032;
-	glm::vec3 ambientPoint = glm::vec3(0, 0, 0);
+	glm::vec3 ambientPoint = glm::vec3(0, 0, .2);
 	glm::vec3 diffusePoint = glm::vec3(.8, .8, .6);
 	glm::vec3 specularPoint = glm::vec3(1, 1, .75);
 	addPointLight(scene.program, position, constant, linear, quadratic, ambientPoint, diffusePoint, specularPoint, 0);

@@ -56,8 +56,9 @@ uniform Material material;
 uniform DirLight dirLight;
 
 // point lights for application. define a constant for array size
-#define NUM_POINT_LIGHTS 1
-uniform PointLight pointLights[NUM_POINT_LIGHTS];
+#define MAX_POINT_LIGHTS 10
+uniform int numPointLights; //arrays must be defined at compile time, so loop through with this
+uniform PointLight pointLights[MAX_POINT_LIGHTS];
 
 // Ambient light color.
 //uniform vec3 ambientColor;
@@ -150,7 +151,7 @@ void main() {
     vec3 result = CalcDirLight(dirLight, norm, eyeDir);
 
     //point lighting
-    for(int i = 0; i < NUM_POINT_LIGHTS; i++)
+    for(int i = 0; i < numPointLights; i++)
         result += CalcPointLight(pointLights[i], norm, eyeDir);
 
     
