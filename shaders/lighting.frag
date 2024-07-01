@@ -92,10 +92,9 @@ vec3 CalcDirLight(DirLight light, vec3 norm, vec3 eyeDir){
         vec3 reflectDir = normalize(reflect(-lightDir, norm));
         // Specular Lambert logic
         float spec = dot(reflectDir, eyeDir);
-        if (spec > 0){
+        if (spec > 0)
             specularIntensity = texture(material.specularMap, TexCoord).x  * light.specular * pow(spec, material.shininess);
-        }
-
+        
 
     }
    
@@ -129,9 +128,9 @@ vec3 CalcPointLight(PointLight light, vec3 norm, vec3 eyeDir){
         vec3 reflectDir = normalize(reflect(-lightDir, norm));
         // Specular Lambert logic
         float spec = dot(reflectDir, eyeDir);
-        if (spec > 0){
+        if (spec > 0)
             specularIntensity = vec3(texture(material.specularMap, TexCoord)) * light.specular * pow(spec, material.shininess) * attenuation;
-        }
+        
         
 
     }
