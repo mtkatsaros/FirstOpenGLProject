@@ -12,8 +12,8 @@ layout (location=0) out vec4 FragColor;
 // learnopengl claims diffuse and ambient have the same k value
 // Material struct
 struct Material {
-    sampler2D diffuse;
-    sampler2D specular;
+    sampler2D baseTexture;
+    sampler2D specularMap;
     float shininess;
 };
 
@@ -56,7 +56,7 @@ uniform Material material;
 uniform DirLight dirLight;
 
 // point lights for application. define a constant for array size
-#define NUM_POINT_LIGHTS 20
+#define NUM_POINT_LIGHTS 1
 uniform PointLight pointLights[NUM_POINT_LIGHTS];
 
 // Ambient light color.
@@ -74,7 +74,7 @@ uniform vec3 viewPos;
 //Calculates directional lighting with specular map
 vec3 CalcDirLight(DirLight light, vec3 norm, vec3 eyeDir){
     // Ambient
-    vec3 ambientIntensity = texture(material.diffuse, TexCoord).x * light.ambient ;
+    vec3 ambientIntensity = vec3(texture(material.baseTexture, TexCoord)) * light.ambient;
 
     // Diffuse components
     vec3 diffuseIntensity = vec3(0);
@@ -88,27 +88,61 @@ vec3 CalcDirLight(DirLight light, vec3 norm, vec3 eyeDir){
     // Lambert calculations can be combined
     if (lambertFactor > 0) {
         // Diffuse Lambert logic
-        diffuseIntensity = texture(material.diffuse, TexCoord).x * light.diffuse * lambertFactor ;
-        
-    }
-    vec3 reflectDir = normalize(reflect(-lightDir, norm));
-    // Specular Lambert logic
-    float spec = dot(reflectDir, eyeDir);
-    if (spec > 0){
-        specularIntensity = texture(material.specular, TexCoord).x  * light.specular * pow(spec, material.shininess);
-    }
+        diffuseIntensity = vec3(texture(material.baseTexture, TexCoord)) * light.diffuse * lambertFactor;
+        vec3 reflectDir = normalize(reflect(-lightDir, norm));
+        // Specular Lambert logic
+        float spec = dot(reflectDir, eyeDir);
+        if (spec > 0){
+            specularIntensity = texture(material.specularMap, TexCoord).x  * light.specular * pow(spec, material.shininess);
+        }
 
 
+    }
+   
 
     return ambientIntensity + diffuseIntensity + specularIntensity;
 }
 
 
 // Calculates point light with specular map
-//vec3 CalcPointLight(PointLight light, vec3 norm, vec3 eyeDir){
-//    vec3 lightDir = normalize(light.position - FragWorldPos);
+vec3 CalcPointLight(PointLight light, vec3 norm, vec3 eyeDir){
+    //we now must consider position of the light for point lights
+    vec3 lightDir = normalize(light.position - FragWorldPos);
 
-//}
+    // We also must calculate attenuation: the dropoff of intensity of light over a given distance
+    float dist = length(light.position - FragWorldPos);
+    float attenuation = 1.0 / (light.constant + light.linear * dist + light.quadratic * (dist * dist));
+
+    //now calculate the final ambient, diffuse, and specular lighting with attenuation
+    vec3 ambientIntensity = vec3(texture(material.baseTexture, TexCoord)) * light.ambient;// * attenuation;
+    vec3 diffuseIntensity = vec3(0);
+
+    float lambertFactor = max(dot(norm, normalize(lightDir)), 0.0);
+
+    // Specular components
+    vec3 specularIntensity = vec3(0);
+
+    // Lambert calculations can be combined
+    if (lambertFactor > 0) {
+        // Diffuse Lambert logic
+        diffuseIntensity = vec3(texture(material.baseTexture, TexCoord)) * light.diffuse * lambertFactor;// * attenuation;
+        vec3 reflectDir = normalize(reflect(-lightDir, norm));
+        // Specular Lambert logic
+        float spec = pow(max(dot(reflectDir, eyeDir), 0.0), material.shininess);
+        //if (spec > 0){
+        specularIntensity = vec3(texture(material.specularMap, TexCoord)) * light.specular * spec;// * pow(spec, material.shininess);// * attenuation;
+        //}
+        
+
+    }
+    
+    ambientIntensity *= attenuation;
+    diffuseIntensity *= attenuation;
+    specularIntensity *= attenuation;
+
+    return ambientIntensity + diffuseIntensity + specularIntensity;
+
+}
 
 
 // The main driver adds everything together
@@ -118,7 +152,12 @@ void main() {
     vec3 norm = normalize(Normal);
     vec3 eyeDir = normalize(viewPos - FragWorldPos);
     
+    // directional lighting
     vec3 result = CalcDirLight(dirLight, norm, eyeDir);
+
+    //point lighting
+    for(int i = 0; i < NUM_POINT_LIGHTS; i++)
+        result += CalcPointLight(pointLights[i], norm, eyeDir);
 
     
     FragColor = vec4(result, 1);

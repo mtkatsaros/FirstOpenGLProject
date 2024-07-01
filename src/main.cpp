@@ -52,8 +52,14 @@ void addDirectionalLight(ShaderProgram &program, glm::vec3 direction, glm::vec3 
 */
 void addPointLight(ShaderProgram& program, glm::vec3 position, float constant,
 float linear, float quadratic, glm::vec3 ambient, glm::vec3 diffuse,
-glm::vec3 specular, int pointLightIndex) {
-	
+glm::vec3 specular, int pointLightIndex) {	
+	program.setUniform("pointLights[" + std::to_string(pointLightIndex) + "].position", position);
+	program.setUniform("pointLights[" + std::to_string(pointLightIndex) + "].constant", constant);
+	program.setUniform("pointLights[" + std::to_string(pointLightIndex) + "].linear", linear);
+	program.setUniform("pointLights[" + std::to_string(pointLightIndex) + "].quadratic", quadratic);
+	program.setUniform("pointLights[" + std::to_string(pointLightIndex) + "].ambient", ambient);
+	program.setUniform("pointLights[" + std::to_string(pointLightIndex) + "].diffuse", diffuse);
+	program.setUniform("pointLights[" + std::to_string(pointLightIndex) + "].specular", specular);
 }
 
 
@@ -115,11 +121,22 @@ Scene bunny() {
 	scene.program.setUniform("material.shininess", 32.0f); //specify so setUniform knows which to use
 
 	// Add directional light (high noon)
-	glm::vec3 direction = glm::vec3(0, -1, 0);
-	glm::vec3 ambient = glm::vec3(0.2, 0.2, 0.17);
-	glm::vec3 diffuse = glm::vec3(1, 1, .85);
+	glm::vec3 direction = glm::vec3(0, -1, -1);
+	glm::vec3 ambient = glm::vec3(0.1, 0.1, 0.085);
+	glm::vec3 diffuse = glm::vec3(0, 0, 0);
 	glm::vec3 specular = glm::vec3(1, 1, .85);
 	addDirectionalLight(scene.program, direction, ambient, diffuse, specular);
+
+	// Add a point light
+	glm::vec3 position = glm::vec3(0, 2, 2);
+	float constant = 1.0;
+	float linear = 0.09;
+	float quadratic = 0.032;
+	glm::vec3 ambientPoint = glm::vec3(0, 0, 0);
+	glm::vec3 diffusePoint = glm::vec3(0, 0, 0);
+	glm::vec3 specularPoint = glm::vec3(0, 0, 0);
+	addPointLight(scene.program, position, constant, linear, quadratic, ambientPoint, diffusePoint, specularPoint, 0);
+
 
 	// Move all objects into the scene's objects list.
 	scene.objects.push_back(std::move(bunny));
@@ -199,21 +216,24 @@ Scene lifeOfPi() {
 	scene.program.activate();
 	scene.program.setUniform("material.shininess", 32.0f); //specify so setUniform knows which to use
 
+
+	
 	// Add directional light (midnight)
 	glm::vec3 direction = glm::vec3(0, -1, 0);
-	glm::vec3 ambientDir = glm::vec3(0.2, 0.2, 0.2);
+	glm::vec3 ambientDir = glm::vec3(0.05, 0.05, 0.05);
 	glm::vec3 diffuseDir = glm::vec3(0, 0, 0);
-	glm::vec3 specularDir = glm::vec3(0.2, 0.2, 0.2);
+	glm::vec3 specularDir = glm::vec3(0.05, 0.05, 0.05);
 	addDirectionalLight(scene.program, direction, ambientDir, diffuseDir, specularDir);
 
 	// Add a point light
-	glm::vec3 position;
-	float constant;
-	float linear;
-	float quadratic;
-	glm::vec3 ambientPoint;
-	glm::vec3 diffusePoint;
-	glm::vec3 specularPoint;
+	glm::vec3 position = glm::vec3(0, 200, 200);
+	float constant = 1.0;
+	float linear = 0.09;
+	float quadratic = 0.032;
+	glm::vec3 ambientPoint = glm::vec3(0, 0, 0);
+	glm::vec3 diffusePoint = glm::vec3(.8, .8, .6);
+	glm::vec3 specularPoint = glm::vec3(1, 1, .75);
+	addPointLight(scene.program, position, constant, linear, quadratic, ambientPoint, diffusePoint, specularPoint, 0);
 
 	// Move the boat into the scene list.
 	scene.objects.push_back(std::move(boat));
@@ -254,7 +274,7 @@ int main() {
 	glEnable(GL_DEPTH_TEST);
 
 	// Inintialize scene objects.
-	auto myScene = bunny();
+	auto myScene = lifeOfPi();
 	// You can directly access specific objects in the scene using references.
 	auto& firstObject = myScene.objects[0];
 
