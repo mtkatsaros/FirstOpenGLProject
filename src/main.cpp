@@ -36,6 +36,33 @@ struct Scene {
 };
 
 /**
+ * @brief Constructs a shader program that applies the Phong reflection model.
+ */
+ShaderProgram phongLightingShader() {
+	ShaderProgram shader;
+	try {
+		// These shaders are INCOMPLETE.
+		shader.load("shaders/light_perspective.vert", "shaders/lighting.frag");
+	}
+	catch (std::runtime_error& e) {
+		std::cout << "ERROR: " << e.what() << std::endl;
+		exit(1);
+	}
+	return shader;
+}
+
+
+/**
+* @brief Initializes Phong lighting shader
+*/
+void phongInit(ShaderProgram &program, float shininess) {
+	program.activate();
+	program.setUniform("material.shininess", shininess);
+	program.setUniform("numPointLights", 0); // Modify when point lights are added
+}
+
+
+/**
 * @brief Adds directional lighting to the scene using Phong lighting shader
 */
 void addDirectionalLight(ShaderProgram &program, glm::vec3 direction, glm::vec3 ambient, 
@@ -65,21 +92,7 @@ glm::vec3 specular, int pointLightIndex) {
 }
 
 
-/**
- * @brief Constructs a shader program that applies the Phong reflection model.
- */
-ShaderProgram phongLightingShader() {
-	ShaderProgram shader;
-	try {
-		// These shaders are INCOMPLETE.
-		shader.load("shaders/light_perspective.vert", "shaders/lighting.frag");
-	}
-	catch (std::runtime_error& e) {
-		std::cout << "ERROR: " << e.what() << std::endl;
-		exit(1);
-	}
-	return shader;
-}
+
 
 /**
  * @brief Constructs a shader program that performs texture mapping with no lighting.
@@ -119,8 +132,7 @@ Scene bunny() {
 	bunny.move(glm::vec3(0.2, -1, 0));
 
 	//Initialize light values
-	scene.program.activate();
-	scene.program.setUniform("material.shininess", 32.0f); //specify so setUniform knows which to use
+	phongInit(scene.program, 32.0);
 
 	// Add directional light (high noon)
 	glm::vec3 direction = glm::vec3(0, -1, -1);
@@ -168,10 +180,7 @@ Scene marbleSquare() {
 	};
 
 	//Initialize light values
-	scene.program.activate();
-	scene.program.setUniform("material.shininess", 32.0f); //specify so setUniform knows which to use
-	scene.program.setUniform("numPointLights", 0); //initialize to zero and modify when lights are added
-
+	phongInit(scene.program, 32.0);
 
 	// Add directional light (none)
 	glm::vec3 direction = glm::vec3(0, -1, 0);
@@ -240,11 +249,8 @@ Scene lifeOfPi() {
 
 
 	//Initialize light values
-	scene.program.activate();
-	scene.program.setUniform("material.shininess", 32.0f); //specify so setUniform knows which to use
+	phongInit(scene.program, 32.0);
 
-
-	
 	// Add directional light (midnight)
 	glm::vec3 direction = glm::vec3(10, -1, 0);
 	glm::vec3 ambientDir = glm::vec3(0.05, 0.05, 0.05);
