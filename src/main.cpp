@@ -406,7 +406,7 @@ int main() {
 	float sensitivity = 0.1;
 
 	//create the character's flashlight. also have a boolean to turn it off
-	glm::vec3 flashlightPos = cameraPos + glm::vec3(0,0,0);
+	glm::vec3 flashlightPos = cameraPos;
 	glm::vec3 flashlightDir = cameraFront;
 	float cutOff = std::cos(glm::radians(12.5));
 	float outerCutOff = std::cos(glm::radians(17.5));
@@ -526,22 +526,26 @@ int main() {
 			cameraPos += movementSpeed * frontXZ;
 			camera = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 			myScene.program.setUniform("view", camera);
+			moveFlashLight(myScene.program, cameraPos, cameraFront);
 		}
 		//cross product of up and forward gives us position to the right
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
 			cameraPos -= glm::normalize(glm::cross(frontXZ, cameraUp)) * movementSpeed;
 			camera = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 			myScene.program.setUniform("view", camera);
+			moveFlashLight(myScene.program, cameraPos, cameraFront);
 		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
 			cameraPos -= movementSpeed * frontXZ;
 			camera = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 			myScene.program.setUniform("view", camera);
+			moveFlashLight(myScene.program, cameraPos, cameraFront);
 		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
 			cameraPos += glm::normalize(glm::cross(frontXZ, cameraUp)) * movementSpeed;
 			camera = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 			myScene.program.setUniform("view", camera);
+			moveFlashLight(myScene.program, cameraPos, cameraFront);
 		}
 		
 		// Update the scene.
