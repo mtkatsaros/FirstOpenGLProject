@@ -237,17 +237,18 @@ Scene marbleSquare() {
 	*/
 
 	// Add a spotlight
-	glm::vec3 position = glm::vec3(0, 10, 0);
+	glm::vec3 position = glm::vec3(0, 2, 0);
 	glm::vec3 directionSpot = glm::vec3(0, -1, 0);
-	float cutOff = std::cos(0.21);
-	float outerCutOff = std::cos(0.26);
+	float cutOff = std::cos(glm::radians(12.5));
+	float outerCutOff = std::cos(glm::radians(17.5));
 	float constant = 1.0;
 	float linear = 0.09;
 	float quadratic = 0.032;
-	glm::vec3 ambientSpot = glm::vec3(0, 0, 0);
-	glm::vec3 diffuseSpot = glm::vec3(0, 0, 0);
+	glm::vec3 ambientSpot = glm::vec3(1, 1, 1);
+	glm::vec3 diffuseSpot = glm::vec3(0.8, 0.8, 0.8);
 	glm::vec3 specularSpot = glm::vec3(1, 1, 1);
 	addSpotLight(scene.program, position, direction, cutOff, outerCutOff, constant, linear, quadratic, ambientSpot, diffuseSpot, specularSpot, 0);
+
 
 	auto mesh = Mesh3D::square(textures);
 	auto floor = Object3D(std::vector<Mesh3D>{mesh});
@@ -365,7 +366,9 @@ int main() {
 
 	// Set up the view and projection matrices.
 	glm::vec3 cameraPos = glm::vec3(0, 0, 5);
-	glm::mat4 camera = glm::lookAt(cameraPos, glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+	glm::vec3 cameraFront = glm::vec3(0, 0, -1);
+	glm::vec3 cameraUp = glm::vec3(0, 1, 0);
+	glm::mat4 camera = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 	glm::mat4 perspective = glm::perspective(glm::radians(45.0), static_cast<double>(window.getSize().x) / window.getSize().y, 0.1, 100.0);
 	myScene.program.setUniform("view", camera);
 	myScene.program.setUniform("projection", perspective);
@@ -381,13 +384,77 @@ int main() {
 		anim.start();
 	}
 
+	float sensitivity = 0.1;
+
+	// initial x and y postions of the mouse. Window size divided by 2 (center of screen)
+	const float X0 = static_cast<float>(window.getSize().x / 2);
+	const float Y0 = static_cast<float>(window.getSize().y / 2);
+
+	// initialize yaw and pitch. yaw is -90 to look in the negative z direction
+	float yaw = -90.0;
+	float pitch = 0.0;
+
+	// use setPosition to center the mouse in the screen
+	// sfml documentation for setPosition: https://www.sfml-dev.org/documentation/2.6.1/classsf_1_1Mouse.php
+	sf::Mouse::setPosition(sf::Vector2i(window.getSize().x / 2, window.getSize().y / 2), window);
+	// hide the mouse cursor
+	// sfml documentation for setMouseCursorVisible: https://www.sfml-dev.org/documentation/2.6.1/classsf_1_1Window.php
+	window.setMouseCursorVisible(false);
+
 	while (running) {
-		
 		sf::Event ev;
 		while (window.pollEvent(ev)) {
 			if (ev.type == sf::Event::Closed) {
 				running = false;
 			}
+			else if (ev.type == sf::Event::KeyPressed) {
+				switch (ev.key.code) {
+				//now that the mouse movement is locked to the screen. We need escape to close the window
+				case (sf::Keyboard::Key::Escape):
+					running = false;
+				}
+			}
+			else if (ev.type == sf::Event::MouseMoved) {
+
+				// We need to use Euler angles to implement this. Euler angles are explained in LearnOpenGL camera mechanics.
+				// source: https://learnopengl.com/Getting-started/Camera 
+				float mousePosX = static_cast<float>(ev.mouseMove.x);
+				float mousePosY = static_cast<float>(ev.mouseMove.y);
+
+				// determine the change in x and y positions of the mouse
+				float deltaX = mousePosX - X0;
+				float deltaY = Y0 - mousePosY; //y coordinates go bottom to top
+				
+				// implement adjustable sensitivity
+				deltaX *= sensitivity;
+				deltaY *= sensitivity;
+
+				// Add the change to the yaw and pitch of the camera
+				yaw += deltaX;
+				pitch += deltaY;
+
+				// we don't want the y axis to pass 90 degrees in either direction. If we do that, it will
+				// mess up the math on the other axes.
+				if (pitch > 89.0)
+					pitch = 89.0;
+				if (pitch < -89.0)
+					pitch = -89.0;
+
+				// Update the cameraFront to implemnet Euler angles for our direction
+				glm::vec3 direction;
+				direction.x = std::cos(glm::radians(yaw)) * std::cos(glm::radians(pitch));
+				direction.y = sin(glm::radians(pitch));
+				direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+				cameraFront = glm::normalize(direction);
+
+				// Now we call glm::lookAt to update the camera
+				camera = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+				myScene.program.setUniform("view", camera);
+				
+				//now reset the mouse position back to the center of the window
+				sf::Mouse::setPosition(sf::Vector2i(window.getSize().x / 2, window.getSize().y / 2), window);
+			}
+
 		}
 		auto now = c.getElapsedTime();
 		auto diff = now - last;
