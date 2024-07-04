@@ -128,6 +128,11 @@ void addSpotLight(ShaderProgram& program, glm::vec3 position, glm::vec3 directio
 	program.setUniform("spotLights[" + std::to_string(spotLightIndex) + "].specular", specular);
 }
 
+void moveFlashLight(ShaderProgram& program, glm::vec3 position, glm::vec3 direction) {
+	program.setUniform("spotLights[0].position", position);
+	program.setUniform("spotLights[0].direction", direction);
+}
+
 
 /**
  * @brief Constructs a shader program that performs texture mapping with no lighting.
@@ -247,7 +252,7 @@ Scene marbleSquare() {
 	glm::vec3 ambientSpot = glm::vec3(1, 1, 1);
 	glm::vec3 diffuseSpot = glm::vec3(0.8, 0.8, 0.8);
 	glm::vec3 specularSpot = glm::vec3(1, 1, 1);
-	addSpotLight(scene.program, position, direction, cutOff, outerCutOff, constant, linear, quadratic, ambientSpot, diffuseSpot, specularSpot, 0);
+	addSpotLight(scene.program, position, directionSpot, cutOff, outerCutOff, constant, linear, quadratic, ambientSpot, diffuseSpot, specularSpot, 1);
 
 
 	auto mesh = Mesh3D::square(textures);
@@ -365,7 +370,7 @@ int main() {
 	myScene.program.activate();
 
 	// Set up the view and projection matrices.
-	glm::vec3 cameraPos = glm::vec3(0, 0, 5);
+	glm::vec3 cameraPos = glm::vec3(0, 6, 0); //The player is 6 tall. 
 	glm::vec3 cameraFront = glm::vec3(0, 0, -1);
 	glm::vec3 cameraUp = glm::vec3(0, 1, 0);
 	glm::mat4 camera = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
@@ -385,6 +390,19 @@ int main() {
 	}
 
 	float sensitivity = 0.1;
+
+	//create the character's flashlight. also have a boolean to turn it off
+	glm::vec3 flashlightPos = cameraPos + glm::vec3(0,0,0);
+	glm::vec3 flashlightDir = cameraFront;
+	float cutOff = std::cos(glm::radians(9.0));
+	float outerCutOff = std::cos(glm::radians(11.0));
+	float constant = 1.0;
+	float linear = 0.09;
+	float quadratic = 0.032;
+	glm::vec3 flashlightAmbient = glm::vec3(1, 1, 1);
+	glm::vec3 flashlightDiffuse = glm::vec3(0.8, 0.8, 0.8);
+	glm::vec3 flashlightSpecular = glm::vec3(1, 1, 1);
+	addSpotLight(myScene.program, flashlightPos, flashlightDir, cutOff, outerCutOff, constant, linear, quadratic, flashlightAmbient, flashlightDiffuse, flashlightSpecular, 0);
 
 	// initial x and y postions of the mouse. Window size divided by 2 (center of screen)
 	const float X0 = static_cast<float>(window.getSize().x / 2);
@@ -450,6 +468,9 @@ int main() {
 				// Now we call glm::lookAt to update the camera
 				camera = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 				myScene.program.setUniform("view", camera);
+
+				//move the flashlight with it
+				moveFlashLight(myScene.program, cameraPos, cameraFront);
 				
 				//now reset the mouse position back to the center of the window
 				sf::Mouse::setPosition(sf::Vector2i(window.getSize().x / 2, window.getSize().y / 2), window);
