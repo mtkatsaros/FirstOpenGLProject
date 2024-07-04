@@ -437,23 +437,30 @@ int main() {
 	window.setMouseCursorVisible(false);
 
 	while (running) {
+		
+		
 		sf::Event ev;
 		while (window.pollEvent(ev)) {
 			if (ev.type == sf::Event::Closed) {
 				running = false;
 			}
 			else if (ev.type == sf::Event::KeyPressed) {
+				
 				switch (ev.key.code) {
-				// now that the mouse movement is locked to the screen. We need escape to close the window
+				
 				case (sf::Keyboard::Key::Escape):
 					running = false;
 					break;
-				// F will toggle the flashlight
+				
 				case(sf::Keyboard::Key::F):
 					flashlightToggled = !flashlightToggled;
 					toggleFlashLight(myScene.program, flashlightToggled);
+					break;
+				
 				}
 			}
+			
+
 			else if (ev.type == sf::Event::MouseMoved) {
 
 				// We need to use Euler angles to implement this. Euler angles are explained in LearnOpenGL camera mechanics.
@@ -497,13 +504,46 @@ int main() {
 				//now reset the mouse position back to the center of the window
 				sf::Mouse::setPosition(sf::Vector2i(window.getSize().x / 2, window.getSize().y / 2), window);
 			}
-
 		}
+		// moved framerate calculation to the top so that I can use it for movement
 		auto now = c.getElapsedTime();
 		auto diff = now - last;
 		std::cout << 1 / diff.asSeconds() << " FPS " << std::endl;
 		last = now;
+		//calculate speed for movement
+		float movementSpeed = 3.5 * diff.asSeconds();
 
+		// horizontal movement. Since we only want horizontal movement, we need to leave the y coordinate unchanged
+		// isKeyPressed works independent from event polling and runs wayyyyyyyyyyyyy smoother
+		// info on isKeyPressed: https://www.sfml-dev.org/documentation/2.6.1/classsf_1_1Keyboard.php
+		// code logic taken from learnOpenGL camera tutorial I used for the mouse movement logic
+
+		// since openGL's tutorial had x,y,z movement, I wanted only x,y movement. I realized to make it consisitent
+		// no matter where the character looks vertically, we have to normalize the vector before doing an operation 
+		// on it. (I actually came up with that on my own, my linear algebra brain works again!)
+		glm::vec3 frontXZ = glm::normalize(glm::vec3(cameraFront.x, 0, cameraFront.z));
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
+			cameraPos += movementSpeed * frontXZ;
+			camera = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+			myScene.program.setUniform("view", camera);
+		}
+		//cross product of up and forward gives us position to the right
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
+			cameraPos -= glm::normalize(glm::cross(frontXZ, cameraUp)) * movementSpeed;
+			camera = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+			myScene.program.setUniform("view", camera);
+		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
+			cameraPos -= movementSpeed * frontXZ;
+			camera = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+			myScene.program.setUniform("view", camera);
+		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
+			cameraPos += glm::normalize(glm::cross(frontXZ, cameraUp)) * movementSpeed;
+			camera = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+			myScene.program.setUniform("view", camera);
+		}
+		
 		// Update the scene.
 		for (auto& anim : myScene.animators) {
 			anim.tick(diff.asSeconds());
