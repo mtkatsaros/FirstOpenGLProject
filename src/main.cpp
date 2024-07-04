@@ -129,8 +129,21 @@ void addSpotLight(ShaderProgram& program, glm::vec3 position, glm::vec3 directio
 }
 
 void moveFlashLight(ShaderProgram& program, glm::vec3 position, glm::vec3 direction) {
+	position -= glm::vec3(0, 2, 0);
 	program.setUniform("spotLights[0].position", position);
 	program.setUniform("spotLights[0].direction", direction);
+}
+
+void toggleFlashLight(ShaderProgram& program, bool toggledOn) {
+	if (toggledOn) {
+		program.setUniform("spotLights[0].ambient", glm::vec3(1, 1, 1));
+		program.setUniform("spotLights[0].diffuse", glm::vec3(0.8, 0.8, 0.8));
+		program.setUniform("spotLights[0].specular", glm::vec3(1, 1, 1));
+		return;
+	}
+	program.setUniform("spotLights[0].ambient", glm::vec3(0, 0, 0));
+	program.setUniform("spotLights[0].diffuse", glm::vec3(0, 0, 0));
+	program.setUniform("spotLights[0].specular", glm::vec3(0, 0, 0));
 }
 
 
@@ -229,7 +242,7 @@ Scene marbleSquare() {
 	glm::vec3 specularDir = glm::vec3(0, 0, 0);
 	addDirectionalLight(scene.program, direction, ambientDir, diffuseDir, specularDir);
 
-	/*
+	
 	// Add a point light
 	glm::vec3 position = glm::vec3(0, 0, 0);
 	float constant = 1.0;
@@ -239,8 +252,9 @@ Scene marbleSquare() {
 	glm::vec3 diffusePoint = glm::vec3(.8, .8, .6);
 	glm::vec3 specularPoint = glm::vec3(1, 1, .75);
 	addPointLight(scene.program, position, constant, linear, quadratic, ambientPoint, diffusePoint, specularPoint, 0);
-	*/
+	
 
+	/*
 	// Add a spotlight
 	glm::vec3 position = glm::vec3(0, 2, 0);
 	glm::vec3 directionSpot = glm::vec3(0, -1, 0);
@@ -253,7 +267,7 @@ Scene marbleSquare() {
 	glm::vec3 diffuseSpot = glm::vec3(0.8, 0.8, 0.8);
 	glm::vec3 specularSpot = glm::vec3(1, 1, 1);
 	addSpotLight(scene.program, position, directionSpot, cutOff, outerCutOff, constant, linear, quadratic, ambientSpot, diffuseSpot, specularSpot, 1);
-
+	*/
 
 	auto mesh = Mesh3D::square(textures);
 	auto floor = Object3D(std::vector<Mesh3D>{mesh});
@@ -394,8 +408,8 @@ int main() {
 	//create the character's flashlight. also have a boolean to turn it off
 	glm::vec3 flashlightPos = cameraPos + glm::vec3(0,0,0);
 	glm::vec3 flashlightDir = cameraFront;
-	float cutOff = std::cos(glm::radians(9.0));
-	float outerCutOff = std::cos(glm::radians(11.0));
+	float cutOff = std::cos(glm::radians(12.5));
+	float outerCutOff = std::cos(glm::radians(17.5));
 	float constant = 1.0;
 	float linear = 0.09;
 	float quadratic = 0.032;
@@ -403,6 +417,9 @@ int main() {
 	glm::vec3 flashlightDiffuse = glm::vec3(0.8, 0.8, 0.8);
 	glm::vec3 flashlightSpecular = glm::vec3(1, 1, 1);
 	addSpotLight(myScene.program, flashlightPos, flashlightDir, cutOff, outerCutOff, constant, linear, quadratic, flashlightAmbient, flashlightDiffuse, flashlightSpecular, 0);
+	bool flashlightToggled = false;
+	toggleFlashLight(myScene.program, flashlightToggled);
+	
 
 	// initial x and y postions of the mouse. Window size divided by 2 (center of screen)
 	const float X0 = static_cast<float>(window.getSize().x / 2);
@@ -427,9 +444,14 @@ int main() {
 			}
 			else if (ev.type == sf::Event::KeyPressed) {
 				switch (ev.key.code) {
-				//now that the mouse movement is locked to the screen. We need escape to close the window
+				// now that the mouse movement is locked to the screen. We need escape to close the window
 				case (sf::Keyboard::Key::Escape):
 					running = false;
+					break;
+				// F will toggle the flashlight
+				case(sf::Keyboard::Key::F):
+					flashlightToggled = !flashlightToggled;
+					toggleFlashLight(myScene.program, flashlightToggled);
 				}
 			}
 			else if (ev.type == sf::Event::MouseMoved) {
