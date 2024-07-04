@@ -384,7 +384,7 @@ int main() {
 	myScene.program.activate();
 
 	// Set up the view and projection matrices.
-	glm::vec3 cameraPos = glm::vec3(0, 6, 0); //The player is 6 tall. 
+	glm::vec3 cameraPos = glm::vec3(0, 12, 0); //The player is 12 tall. 
 	glm::vec3 cameraFront = glm::vec3(0, 0, -1);
 	glm::vec3 cameraUp = glm::vec3(0, 1, 0);
 	glm::mat4 camera = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
@@ -411,8 +411,8 @@ int main() {
 	float cutOff = std::cos(glm::radians(12.5));
 	float outerCutOff = std::cos(glm::radians(17.5));
 	float constant = 1.0;
-	float linear = 0.09;
-	float quadratic = 0.032;
+	float linear = 0.045;
+	float quadratic = 0.0075;
 	glm::vec3 flashlightAmbient = glm::vec3(1, 1, 1);
 	glm::vec3 flashlightDiffuse = glm::vec3(0.8, 0.8, 0.8);
 	glm::vec3 flashlightSpecular = glm::vec3(1, 1, 1);
@@ -511,7 +511,7 @@ int main() {
 		std::cout << 1 / diff.asSeconds() << " FPS " << std::endl;
 		last = now;
 		//calculate speed for movement
-		float movementSpeed = 3.5 * diff.asSeconds();
+		float movementSpeed = 10 * diff.asSeconds();
 
 		// horizontal movement. Since we only want horizontal movement, we need to leave the y coordinate unchanged
 		// isKeyPressed works independent from event polling and runs wayyyyyyyyyyyyy smoother
@@ -522,6 +522,8 @@ int main() {
 		// no matter where the character looks vertically, we have to normalize the vector before doing an operation 
 		// on it. (I actually came up with that on my own, my linear algebra brain works again!)
 		glm::vec3 frontXZ = glm::normalize(glm::vec3(cameraFront.x, 0, cameraFront.z));
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift))
+			movementSpeed *= 2.5;
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
 			cameraPos += movementSpeed * frontXZ;
 			camera = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);

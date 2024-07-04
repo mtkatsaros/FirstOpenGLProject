@@ -71,10 +71,10 @@ void Mesh3D::render(ShaderProgram& program) const {
 Mesh3D Mesh3D::square(const std::vector<Texture>& textures) {
 	return Mesh3D(
 		{
-			{ 0.5, 0.5, 0, 0, 0, 1, 1, 0 },    // TR
-			{ 0.5, -0.5, 0, 0, 0, 1, 1, 1 },   // BR
-			{ -0.5, -0.5, 0, 0, 0, 1, 0, 1 },  // BL
-			{ -0.5, 0.5, 0, 0, 0, 1, 0, 0 },   // TL
+			{ 20, 20, 0, 0, 0, 40, 40, 0 },    // TR
+			{ 20, -20, 0, 0, 0, 40, 40, 40 },   // BR
+			{ -20, -20, 0, 0, 0, 40, 0, 40 },  // BL
+			{ -20, 20, 0, 0, 0, 40, 0, 0 },   // TL
 		},
 		{
 			2, 1, 3,
