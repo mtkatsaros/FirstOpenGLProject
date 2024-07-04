@@ -248,7 +248,7 @@ Scene marbleSquare() {
 	float constant = 1.0;
 	float linear = 0.09;
 	float quadratic = 0.032;
-	glm::vec3 ambientPoint = glm::vec3(0, 0, .2);
+	glm::vec3 ambientPoint = glm::vec3(0.1, 0.1, 0.075);
 	glm::vec3 diffusePoint = glm::vec3(.8, .8, .6);
 	glm::vec3 specularPoint = glm::vec3(1, 1, .75);
 	addPointLight(scene.program, position, constant, linear, quadratic, ambientPoint, diffusePoint, specularPoint, 0);

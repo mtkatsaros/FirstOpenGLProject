@@ -14,6 +14,7 @@ layout (location=0) out vec4 FragColor;
 struct Material {
     sampler2D baseTexture;
     sampler2D specularMap;
+    sampler2D normalMap;
     float shininess;
 };
 
@@ -56,6 +57,7 @@ struct SpotLight {
 in vec2 TexCoord;
 in vec3 Normal;
 in vec3 FragWorldPos;
+in mat3 TBN;
 
 // Uniforms: MUST BE PROVIDED BY THE APPLICATION.
 
@@ -198,7 +200,9 @@ vec3 CalcSpotLight(SpotLight light, vec3 norm, vec3 eyeDir){
 void main() {
     // DONE: using the lecture notes, compute ambientIntensity, diffuseIntensity, 
     // and specularIntensity.
-    vec3 norm = normalize(Normal);
+    vec3 norm;
+    norm = vec3(texture(material.normalMap, TexCoord));
+    norm = normalize(TBN * (norm * 2.0 - 1.0));
     vec3 eyeDir = normalize(viewPos - FragWorldPos);
     
     // directional lighting
