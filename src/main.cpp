@@ -171,6 +171,37 @@ Texture loadTexture(const std::filesystem::path& path, const std::string& sample
 	return Texture::loadImage(i, samplerName);
 }
 
+/**
+ * @brief Demonstrates loading a square, oriented as the "floor", with a manually-specified texture
+ * that does not come from Assimp.
+ */
+Scene mainScene() {
+	Scene scene{ phongLightingShader() };
+
+	std::vector<Texture> textures = {
+		loadTexture("models/White_marble_03/Textures_2K/white_marble_03_2k_baseColor.tga", "baseTexture"),
+	};
+
+	//Initialize light values
+	phongInit(scene.program, 32.0);
+
+	// Add directional light (none)
+	glm::vec3 direction = glm::vec3(0, -1, 0);
+	glm::vec3 ambientDir = glm::vec3(0, 0, 0);
+	glm::vec3 diffuseDir = glm::vec3(0, 0, 0);
+	glm::vec3 specularDir = glm::vec3(0, 0, 0);
+	addDirectionalLight(scene.program, direction, ambientDir, diffuseDir, specularDir);
+
+	auto mesh = Mesh3D::square(textures);
+	auto floor = Object3D(std::vector<Mesh3D>{mesh});
+	floor.grow(glm::vec3(5, 5, 5));
+	floor.move(glm::vec3(0, -1.5, 0));
+	floor.rotate(glm::vec3(-M_PI / 2, 0, 0));
+
+	scene.objects.push_back(std::move(floor));
+	return scene;
+}
+
 /*****************************************************************************************
 *  DEMONSTRATION SCENES
 *****************************************************************************************/
@@ -188,21 +219,11 @@ Scene bunny() {
 	phongInit(scene.program, 32.0);
 
 	// Add directional light (high noon)
-	glm::vec3 direction = glm::vec3(0, -1, -1);
-	glm::vec3 ambient = glm::vec3(0.1, 0.1, 0.085);
-	glm::vec3 diffuse = glm::vec3(0, 0, 0);
+	glm::vec3 direction = glm::vec3(0, -1, 0);
+	glm::vec3 ambient = glm::vec3(0.3, 0.3, 0.255);
+	glm::vec3 diffuse = glm::vec3(1, 1, .85);
 	glm::vec3 specular = glm::vec3(1, 1, .85);
 	addDirectionalLight(scene.program, direction, ambient, diffuse, specular);
-
-	// Add a point light
-	glm::vec3 position = glm::vec3(0, 2, 2);
-	float constant = 1.0;
-	float linear = 0.09;
-	float quadratic = 0.032;
-	glm::vec3 ambientPoint = glm::vec3(0, 0, 0);
-	glm::vec3 diffusePoint = glm::vec3(0, 0, 0);
-	glm::vec3 specularPoint = glm::vec3(0, 0, 0);
-	addPointLight(scene.program, position, constant, linear, quadratic, ambientPoint, diffusePoint, specularPoint, 0);
 
 
 	// Move all objects into the scene's objects list.
@@ -376,7 +397,7 @@ int main() {
 	glEnable(GL_DEPTH_TEST);
 
 	// Inintialize scene objects.
-	auto myScene = marbleSquare();
+	auto myScene = mainScene();
 	// You can directly access specific objects in the scene using references.
 	auto& firstObject = myScene.objects[0];
 
@@ -384,7 +405,7 @@ int main() {
 	myScene.program.activate();
 
 	// Set up the view and projection matrices.
-	glm::vec3 cameraPos = glm::vec3(0, 12, 0); //The player is 12 tall. 
+	glm::vec3 cameraPos = glm::vec3(0, 10, 0); //The player is 10 tall. 
 	glm::vec3 cameraFront = glm::vec3(0, 0, -1);
 	glm::vec3 cameraUp = glm::vec3(0, 1, 0);
 	glm::mat4 camera = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
@@ -511,7 +532,7 @@ int main() {
 		std::cout << 1 / diff.asSeconds() << " FPS " << std::endl;
 		last = now;
 		//calculate speed for movement
-		float movementSpeed = 10 * diff.asSeconds();
+		float movementSpeed = 8.5 * diff.asSeconds();
 
 		// horizontal movement. Since we only want horizontal movement, we need to leave the y coordinate unchanged
 		// isKeyPressed works independent from event polling and runs wayyyyyyyyyyyyy smoother

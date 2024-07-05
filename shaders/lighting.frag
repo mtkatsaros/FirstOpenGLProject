@@ -200,9 +200,10 @@ vec3 CalcSpotLight(SpotLight light, vec3 norm, vec3 eyeDir){
 void main() {
     // DONE: using the lecture notes, compute ambientIntensity, diffuseIntensity, 
     // and specularIntensity.
-    vec3 norm;
-    norm = vec3(texture(material.normalMap, TexCoord));
-    norm = normalize(TBN * (norm * 2.0 - 1.0));
+    vec3 norm = normalize(Normal);
+
+    //norm = vec3(texture(material.normalMap, TexCoord));
+    //norm = normalize(TBN * (norm * 2.0 - 1.0));
     vec3 eyeDir = normalize(viewPos - FragWorldPos);
     
     // directional lighting
