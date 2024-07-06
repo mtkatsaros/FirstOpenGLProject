@@ -87,8 +87,6 @@ uniform SpotLight spotLights[MAX_SPOTLIGHTS];
 //uniform vec3 directionalLight; // this is the "I" vector, not the "L" vector.
 //uniform vec3 directionalColor;
 
-
-
 // Location of the camera.
 uniform vec3 viewPos;
 
@@ -100,6 +98,7 @@ vec3 CalcDirLight(DirLight light, vec3 norm, vec3 eyeDir){
     // Diffuse components
     vec3 diffuseIntensity = vec3(0);
     
+    //vec3 lightDir = normalize(TBN * (-light.direction));
     vec3 lightDir = -light.direction;
     float lambertFactor = dot(norm, normalize(lightDir));
 
@@ -125,6 +124,7 @@ vec3 CalcDirLight(DirLight light, vec3 norm, vec3 eyeDir){
 // Calculates point light with specular map
 vec3 CalcPointLight(PointLight light, vec3 norm, vec3 eyeDir){
     //we now must consider position of the light for point lights
+    //vec3 lightDir = normalize(TBN * (light.position - FragWorldPos));
     vec3 lightDir = normalize(light.position - FragWorldPos);
 
     // We also must calculate attenuation: the dropoff of intensity of light over a given distance
@@ -154,6 +154,7 @@ vec3 CalcPointLight(PointLight light, vec3 norm, vec3 eyeDir){
 
 // Calculates spotlight with specular map
 vec3 CalcSpotLight(SpotLight light, vec3 norm, vec3 eyeDir){
+    //vec3 lightDir = normalize(TBN * (light.position - FragWorldPos));
     vec3 lightDir = normalize(light.position - FragWorldPos);
 
     // spot lights also use attenuation: the dropoff of intensity of light over a given distance
@@ -202,8 +203,11 @@ void main() {
     // and specularIntensity.
     vec3 norm = normalize(Normal);
 
-    //norm = vec3(texture(material.normalMap, TexCoord));
-    //norm = normalize(TBN * (norm * 2.0 - 1.0));
+    //vec3 norm = vec3(texture(material.normalMap, TexCoord));
+    //norm = normalize(norm * 2.0 - 1.0);
+    //norm = normalize(TBN * norm);
+
+    //vec3 eyeDir = normalize(TBN * (viewPos - FragWorldPos));
     vec3 eyeDir = normalize(viewPos - FragWorldPos);
     
     // directional lighting
@@ -219,4 +223,5 @@ void main() {
     
     
     FragColor = vec4(result, 1);
+    //FragColor = vec4(norm, 1);
 }

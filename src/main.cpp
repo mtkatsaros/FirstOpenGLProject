@@ -80,11 +80,13 @@ void addDirectionalLight(ShaderProgram &program, glm::vec3 direction, glm::vec3 
 * @brief Sets directional lighting to daytime
 */
 void setToDayTime(ShaderProgram& program) {
+	// clear color sets background
+	// source: https://registry.khronos.org/OpenGL-Refpages/gl4/html/glClearColor.xhtml
 	glClearColor(0.68, 0.85, 0.9, 1);
 	glm::vec3 direction = glm::vec3(0, -1, 0);
 	glm::vec3 ambientDir = glm::vec3(.3, .3, .255);
 	glm::vec3 diffuseDir = glm::vec3(1, 1, .85);
-	glm::vec3 specularDir = glm::vec3(1, 1, .85);
+	glm::vec3 specularDir = glm::vec3(.3, .3, .255);
 	addDirectionalLight(program, direction, ambientDir, diffuseDir, specularDir);
 }
 
@@ -96,7 +98,7 @@ void setToNightTime(ShaderProgram& program) {
 	glm::vec3 direction = glm::vec3(0, -1, 0);
 	glm::vec3 ambientDir = glm::vec3(0, 0, 0);
 	glm::vec3 diffuseDir = glm::vec3(0, 0, 0);
-	glm::vec3 specularDir = glm::vec3(0, 0, 0);
+	glm::vec3 specularDir = glm::vec3(.3, .3, .3);
 	addDirectionalLight(program, direction, ambientDir, diffuseDir, specularDir);
 }
 
@@ -202,7 +204,8 @@ Scene mainScene() {
 	Scene scene{ phongLightingShader() };
 
 	std::vector<Texture> textures = {
-		loadTexture("models/White_marble_03/Textures_2K/white_marble_03_2k_baseColor.tga", "baseTexture"),
+		loadTexture("models/grass/grass01.jpg", "material.baseTexture"),
+		loadTexture("models/grass/grass01_n.jpg", "material.normalMap"),
 	};
 
 	auto knight = assimpLoad("models/knight/scene.gltf", true);
