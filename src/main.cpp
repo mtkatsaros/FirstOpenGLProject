@@ -76,6 +76,30 @@ void addDirectionalLight(ShaderProgram &program, glm::vec3 direction, glm::vec3 
 	program.setUniform("dirLight.specular", specular);
 }
 
+/**
+* @brief Sets directional lighting to daytime
+*/
+void setToDayTime(ShaderProgram& program) {
+	glClearColor(0.68, 0.85, 0.9, 1);
+	glm::vec3 direction = glm::vec3(0, -1, 0);
+	glm::vec3 ambientDir = glm::vec3(.3, .3, .255);
+	glm::vec3 diffuseDir = glm::vec3(1, 1, .85);
+	glm::vec3 specularDir = glm::vec3(1, 1, .85);
+	addDirectionalLight(program, direction, ambientDir, diffuseDir, specularDir);
+}
+
+/**
+* @brief Sets directional lighting to night lighting
+*/
+void setToNightTime(ShaderProgram& program) {
+	glClearColor(0, 0, 0, 1);
+	glm::vec3 direction = glm::vec3(0, -1, 0);
+	glm::vec3 ambientDir = glm::vec3(0, 0, 0);
+	glm::vec3 diffuseDir = glm::vec3(0, 0, 0);
+	glm::vec3 specularDir = glm::vec3(0, 0, 0);
+	addDirectionalLight(program, direction, ambientDir, diffuseDir, specularDir);
+}
+
 
 /**
 * @brief Adds a point light to the scene using Phong lighting shader and attenuation
@@ -129,7 +153,7 @@ void addSpotLight(ShaderProgram& program, glm::vec3 position, glm::vec3 directio
 }
 
 void moveFlashLight(ShaderProgram& program, glm::vec3 position, glm::vec3 direction) {
-	position -= glm::vec3(0, 2, 0);
+	//position -= glm::vec3(0, 2, 0);
 	program.setUniform("spotLights[0].position", position);
 	program.setUniform("spotLights[0].direction", direction);
 }
@@ -172,8 +196,7 @@ Texture loadTexture(const std::filesystem::path& path, const std::string& sample
 }
 
 /**
- * @brief Demonstrates loading a square, oriented as the "floor", with a manually-specified texture
- * that does not come from Assimp.
+ * @brief My main scene. Holds all the logic for the game.
  */
 Scene mainScene() {
 	Scene scene{ phongLightingShader() };
@@ -182,15 +205,17 @@ Scene mainScene() {
 		loadTexture("models/White_marble_03/Textures_2K/white_marble_03_2k_baseColor.tga", "baseTexture"),
 	};
 
+	auto knight = assimpLoad("models/knight/scene.gltf", true);
+	knight.grow(glm::vec3(5, 5, 5));
+	knight.move(glm::vec3(0.2, -1.5, 0));
+
 	//Initialize light values
 	phongInit(scene.program, 32.0);
 
-	// Add directional light (none)
-	glm::vec3 direction = glm::vec3(0, -1, 0);
-	glm::vec3 ambientDir = glm::vec3(0, 0, 0);
-	glm::vec3 diffuseDir = glm::vec3(0, 0, 0);
-	glm::vec3 specularDir = glm::vec3(0, 0, 0);
-	addDirectionalLight(scene.program, direction, ambientDir, diffuseDir, specularDir);
+	// set time of day by adding directional light
+	setToDayTime(scene.program);
+	//setToNightTime(scene.program);
+
 
 	auto mesh = Mesh3D::square(textures);
 	auto floor = Object3D(std::vector<Mesh3D>{mesh});
@@ -199,6 +224,7 @@ Scene mainScene() {
 	floor.rotate(glm::vec3(-M_PI / 2, 0, 0));
 
 	scene.objects.push_back(std::move(floor));
+	scene.objects.push_back(std::move(knight));
 	return scene;
 }
 
@@ -391,7 +417,7 @@ int main() {
 	settings.antialiasingLevel = 2;  // Request 2 levels of antialiasing
 	settings.majorVersion = 3;
 	settings.minorVersion = 3;
-	sf::Window window(sf::VideoMode{ 1200, 800 }, "Modern OpenGL", sf::Style::Resize | sf::Style::Close, settings);
+	sf::Window window(sf::VideoMode{ 1200, 800 }, "Michael's Scene", sf::Style::Resize | sf::Style::Close, settings);
 
 	gladLoadGL();
 	glEnable(GL_DEPTH_TEST);
@@ -405,7 +431,7 @@ int main() {
 	myScene.program.activate();
 
 	// Set up the view and projection matrices.
-	glm::vec3 cameraPos = glm::vec3(0, 10, 0); //The player is 10 tall. 
+	glm::vec3 cameraPos = glm::vec3(0, 8, 0); //The player is 10 tall. 
 	glm::vec3 cameraFront = glm::vec3(0, 0, -1);
 	glm::vec3 cameraUp = glm::vec3(0, 1, 0);
 	glm::mat4 camera = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
