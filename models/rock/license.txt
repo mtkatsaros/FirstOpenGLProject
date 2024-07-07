@@ -1,0 +1,11 @@
+Model Information:
+* title:	Free Stone Sphere
+* source:	https://sketchfab.com/3d-models/free-stone-sphere-0a444badf9114ec7848233e7e7733a6f
+* author:	zames1992 (https://sketchfab.com/zames1992)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Free Stone Sphere" (https://sketchfab.com/3d-models/free-stone-sphere-0a444badf9114ec7848233e7e7733a6f) by zames1992 (https://sketchfab.com/zames1992) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

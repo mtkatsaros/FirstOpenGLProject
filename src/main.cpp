@@ -223,7 +223,7 @@ Scene mainScene() {
 	// constructors that don't exist.
 	std::vector<Object3D> trees = { assimpLoad("models/tree/scene.gltf", true) };
 	trees.back().grow(glm::vec3(10, 10, 10));
-	trees.back().move(glm::vec3(0, 10.5, 0));
+	trees.back().move(glm::vec3(0, 10.5, -50));
 	for (int i = 1; i < TREE_COUNT; i++) {
 		trees.emplace_back(assimpLoad("models/tree/scene.gltf", true));
 		trees.back().grow(glm::vec3(10, 10, 10));
@@ -240,18 +240,24 @@ Scene mainScene() {
 	monster.grow(glm::vec3(4.5, 4.5, 4.5));
 	monster.move(glm::vec3(28, -1.5, 0));
 
+	//rock
+	auto rock = assimpLoad("models/rock/scene.gltf", true);
+	rock.grow(glm::vec3(0.3, 0.3, 0.3));
+	rock.move(glm::vec3(15, 5, 0));
+
 	//Initialize light values
 	phongInit(scene.program, 32.0);
 
 	// set time of day by adding directional light
-	//setToDayTime(scene.program);
-	setToNightTime(scene.program);
+	setToDayTime(scene.program);
+	//setToNightTime(scene.program);
 
 	scene.objects.push_back(std::move(floor));
 	for (Object3D t : trees)
 		scene.objects.push_back(std::move(t));
-	scene.objects.push_back(std::move(monster));
 	scene.objects.push_back(std::move(rat));
+	scene.objects.push_back(std::move(monster));
+	scene.objects.push_back(std::move(rock));
 	return scene;
 }
 
