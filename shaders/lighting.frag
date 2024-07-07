@@ -58,6 +58,7 @@ in vec2 TexCoord;
 in vec3 Normal;
 in vec3 FragWorldPos;
 in mat3 TBN;
+in vec4 FragPosLightSpace;
 
 // Uniforms: MUST BE PROVIDED BY THE APPLICATION.
 
@@ -89,6 +90,13 @@ uniform SpotLight spotLights[MAX_SPOTLIGHTS];
 
 // Location of the camera.
 uniform vec3 viewPos;
+
+
+//calculate shadows
+float ShadowCalculation(vec4 fragPosLightSpace){
+    float fragZ = fragPosLightSpace.z;
+    return fragZ;
+}
 
 //Calculates directional lighting with specular map
 vec3 CalcDirLight(DirLight light, vec3 norm, vec3 eyeDir){

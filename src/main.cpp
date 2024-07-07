@@ -96,9 +96,9 @@ void setToDayTime(ShaderProgram& program) {
 void setToNightTime(ShaderProgram& program) {
 	glClearColor(0, 0, 0, 1);
 	glm::vec3 direction = glm::vec3(0, -1, 0);
-	glm::vec3 ambientDir = glm::vec3(0, 0, 0);
+	glm::vec3 ambientDir = glm::vec3(.01, .01, .01);
 	glm::vec3 diffuseDir = glm::vec3(0, 0, 0);
-	glm::vec3 specularDir = glm::vec3(.3, .3, .3);
+	glm::vec3 specularDir = glm::vec3(.03, .03, .03);
 	addDirectionalLight(program, direction, ambientDir, diffuseDir, specularDir);
 }
 
@@ -206,6 +206,7 @@ Scene mainScene() {
 	std::vector<Texture> textures = {
 		loadTexture("models/grass/grass01.jpg", "material.baseTexture"),
 		loadTexture("models/grass/grass01_n.jpg", "material.normalMap"),
+		loadTexture("models/grass/grass01_s.jpg", "material.specularMap")
 	};
 
 	auto knight = assimpLoad("models/knight/scene.gltf", true);
@@ -216,8 +217,8 @@ Scene mainScene() {
 	phongInit(scene.program, 32.0);
 
 	// set time of day by adding directional light
-	setToDayTime(scene.program);
-	//setToNightTime(scene.program);
+	//setToDayTime(scene.program);
+	setToNightTime(scene.program);
 
 
 	auto mesh = Mesh3D::square(textures);
