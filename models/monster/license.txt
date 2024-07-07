@@ -1,11 +1,11 @@
 Model Information:
-* title:	Wiggle
-* source:	https://sketchfab.com/3d-models/wiggle-94cd859710bb4a879ec55de06ac5203c
-* author:	vasian-65 (https://sketchfab.com/vasian-65)
+* title:	Rat
+* source:	https://sketchfab.com/3d-models/rat-08055d4e28494925bb4892ebfe2f76e4
+* author:	nataliedesign (https://sketchfab.com/nataliedesign)
 
 Model License:
 * license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
 * requirements:	Author must be credited. Commercial use is allowed.
 
 If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
-This work is based on "Wiggle" (https://sketchfab.com/3d-models/wiggle-94cd859710bb4a879ec55de06ac5203c) by vasian-65 (https://sketchfab.com/vasian-65) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+This work is based on "Rat" (https://sketchfab.com/3d-models/rat-08055d4e28494925bb4892ebfe2f76e4) by nataliedesign (https://sketchfab.com/nataliedesign) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

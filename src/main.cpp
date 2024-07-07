@@ -209,6 +209,11 @@ Scene mainScene() {
 		loadTexture("models/grass/grass01_n.jpg", "material.normalMap"),
 		loadTexture("models/grass/grass01_s.jpg", "material.specularMap")
 	};
+	auto mesh = Mesh3D::square(textures);
+	auto floor = Object3D(std::vector<Mesh3D>{mesh});
+	floor.grow(glm::vec3(5, 5, 5));
+	floor.move(glm::vec3(0, -1.5, 0));
+	floor.rotate(glm::vec3(-M_PI / 2, 0, 0));
 
 
 	//Trees
@@ -225,11 +230,15 @@ Scene mainScene() {
 		trees.back().move(glm::vec3(0, 10.5, 0));
 	}
 	
+	//rat
+	auto rat = assimpLoad("models/rat/street_rat_4k.gltf", true);
+	rat.grow(glm::vec3(30, 30, 30));
+	rat.move(glm::vec3(0.2, -1.5, 0));
 	
 	//monster
 	auto monster = assimpLoad("models/monster/scene.gltf", true);
-	monster.grow(glm::vec3(100, 100, 100));
-	monster.move(glm::vec3(0.2, -1.5, 0));
+	monster.grow(glm::vec3(4.5, 4.5, 4.5));
+	monster.move(glm::vec3(28, -1.5, 0));
 
 	//Initialize light values
 	phongInit(scene.program, 32.0);
@@ -238,17 +247,11 @@ Scene mainScene() {
 	//setToDayTime(scene.program);
 	setToNightTime(scene.program);
 
-
-	auto mesh = Mesh3D::square(textures);
-	auto floor = Object3D(std::vector<Mesh3D>{mesh});
-	floor.grow(glm::vec3(5, 5, 5));
-	floor.move(glm::vec3(0, -1.5, 0));
-	floor.rotate(glm::vec3(-M_PI / 2, 0, 0));
-
 	scene.objects.push_back(std::move(floor));
-	scene.objects.push_back(std::move(monster));
 	for (Object3D t : trees)
 		scene.objects.push_back(std::move(t));
+	scene.objects.push_back(std::move(monster));
+	scene.objects.push_back(std::move(rat));
 	return scene;
 }
 
@@ -455,7 +458,7 @@ int main() {
 	myScene.program.activate();
 
 	// Set up the view and projection matrices.
-	glm::vec3 cameraPos = glm::vec3(0, 8, 0); //The player is 10 tall. 
+	glm::vec3 cameraPos = glm::vec3(0, 10, 0); //The player is 10 tall. 
 	glm::vec3 cameraFront = glm::vec3(0, 0, -1);
 	glm::vec3 cameraUp = glm::vec3(0, 1, 0);
 	glm::mat4 camera = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
