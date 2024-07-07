@@ -203,15 +203,33 @@ Texture loadTexture(const std::filesystem::path& path, const std::string& sample
 Scene mainScene() {
 	Scene scene{ phongLightingShader() };
 
+	// grass for the ground
 	std::vector<Texture> textures = {
 		loadTexture("models/grass/grass01.jpg", "material.baseTexture"),
 		loadTexture("models/grass/grass01_n.jpg", "material.normalMap"),
 		loadTexture("models/grass/grass01_s.jpg", "material.specularMap")
 	};
 
-	auto knight = assimpLoad("models/knight/scene.gltf", true);
-	knight.grow(glm::vec3(5, 5, 5));
-	knight.move(glm::vec3(0.2, -1.5, 0));
+
+	//Trees
+	const int TREE_COUNT = 1;
+	// Object3D does not have a default constructor, so I cannot initialize the vector size to TREE_COUNT
+	// and perform a range based for loop. This is the work-around so that we do not call any default 
+	// constructors that don't exist.
+	std::vector<Object3D> trees = { assimpLoad("models/tree/scene.gltf", true) };
+	trees.back().grow(glm::vec3(10, 10, 10));
+	trees.back().move(glm::vec3(0, 10.5, 0));
+	for (int i = 1; i < TREE_COUNT; i++) {
+		trees.emplace_back(assimpLoad("models/tree/scene.gltf", true));
+		trees.back().grow(glm::vec3(10, 10, 10));
+		trees.back().move(glm::vec3(0, 10.5, 0));
+	}
+	
+	
+	//monster
+	auto monster = assimpLoad("models/monster/scene.gltf", true);
+	monster.grow(glm::vec3(100, 100, 100));
+	monster.move(glm::vec3(0.2, -1.5, 0));
 
 	//Initialize light values
 	phongInit(scene.program, 32.0);
@@ -228,7 +246,9 @@ Scene mainScene() {
 	floor.rotate(glm::vec3(-M_PI / 2, 0, 0));
 
 	scene.objects.push_back(std::move(floor));
-	scene.objects.push_back(std::move(knight));
+	scene.objects.push_back(std::move(monster));
+	for (Object3D t : trees)
+		scene.objects.push_back(std::move(t));
 	return scene;
 }
 
@@ -576,7 +596,20 @@ int main() {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift))
 			movementSpeed *= 2.5;
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
+			// slow down the movement speed for the case where the movement stacks (I did not derive this mathematically,
+			// just trial and error!)
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)|| sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
+				movementSpeed /= 1.5;
 			cameraPos += movementSpeed * frontXZ;
+			camera = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+			myScene.program.setUniform("view", camera);
+			moveFlashLight(myScene.program, cameraPos, cameraFront);
+		}
+		// had to move the 'S' case above the 'A' case to keep the movement logic consistent
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
+				movementSpeed /= 1.5;
+			cameraPos -= movementSpeed * frontXZ;
 			camera = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 			myScene.program.setUniform("view", camera);
 			moveFlashLight(myScene.program, cameraPos, cameraFront);
@@ -588,12 +621,7 @@ int main() {
 			myScene.program.setUniform("view", camera);
 			moveFlashLight(myScene.program, cameraPos, cameraFront);
 		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
-			cameraPos -= movementSpeed * frontXZ;
-			camera = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-			myScene.program.setUniform("view", camera);
-			moveFlashLight(myScene.program, cameraPos, cameraFront);
-		}
+		
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
 			cameraPos += glm::normalize(glm::cross(frontXZ, cameraUp)) * movementSpeed;
 			camera = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
