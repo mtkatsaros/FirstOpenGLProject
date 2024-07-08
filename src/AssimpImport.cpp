@@ -78,16 +78,16 @@ Mesh3D fromAssimpMesh(const aiMesh* mesh, const aiScene* scene, const std::files
 	{
 		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 		std::vector<Texture> diffuseMaps = loadMaterialTextures(material,
-			aiTextureType_DIFFUSE, "baseTexture", modelPath, loadedTextures);
+			aiTextureType_DIFFUSE, "material.baseTexture", modelPath, loadedTextures);
 		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 		std::vector<Texture> specularMaps = loadMaterialTextures(material,
-			aiTextureType_SPECULAR, "specMap", modelPath, loadedTextures);
+			aiTextureType_SPECULAR, "material.specularMap", modelPath, loadedTextures);
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 		std::vector<Texture> heightMaps = loadMaterialTextures(material,
 			aiTextureType_HEIGHT, "heightMap", modelPath, loadedTextures);
 		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 		std::vector<Texture> normalMaps = loadMaterialTextures(material,
-			aiTextureType_NORMALS, "normalMap", modelPath, loadedTextures);
+			aiTextureType_NORMALS, "material.normalMap", modelPath, loadedTextures);
 		textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 	}
 
