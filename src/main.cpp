@@ -198,6 +198,8 @@ Texture loadTexture(const std::filesystem::path& path, const std::string& sample
 }
 
 const int TOTAL_ROCK_MAX = 100; //needed a global rock maximum since it is accessed in 2 places
+const glm::vec3 ROCK_DISPLACEMENT = glm::vec3(1000, 0, 0);
+const float ROCK_MASS = 0.5;
 /**
  * @brief adds a rock to the scene, throws it, and deletes after 10 seconds
  */
@@ -207,9 +209,8 @@ void throwRock(Scene& scene, glm::vec3 position, int& rockCount) {
 		return;
 	}
 	//create the rock on the scene and move it to the character's position
-	//rock
 	auto& rock = scene.objects[rockCount + 2];
-	rock.move(position + glm::vec3(0, 3, 0));
+	rock.move(position - ROCK_DISPLACEMENT);
 	
 	//TODO: Implement throwing physics
 
@@ -231,8 +232,10 @@ Scene mainScene() {
 	};
 	auto mesh = Mesh3D::square(textures);
 	auto floor = Object3D(std::vector<Mesh3D>{mesh});
+	// physics professors would hate me. Set mass to 0. Don't hate the developer, hate the game.
+	floor.setMass(0);
 	floor.grow(glm::vec3(5, 5, 5));
-	floor.move(glm::vec3(0, -1.5, 0));
+	floor.move(glm::vec3(0, 0, 0));
 	floor.rotate(glm::vec3(-M_PI / 2, 0, 0));
 
 
@@ -242,8 +245,11 @@ Scene mainScene() {
 	// and perform a range based for loop. This is the work-around so that we do not call any default 
 	// constructors that don't exist.
 	std::vector<Object3D> trees = { assimpLoad("models/tree/scene.gltf", true) };
+	trees.back().setMass(0);
 	trees.back().grow(glm::vec3(10, 10, 10));
-	trees.back().move(glm::vec3(0, 10.5, -50));
+	trees.back().move(glm::vec3(0, 12.5, -50));
+	
+
 	for (int i = 1; i < TREE_COUNT; i++) {
 		trees.emplace_back(assimpLoad("models/tree/scene.gltf", true));
 		trees.back().grow(glm::vec3(10, 10, 10));
@@ -253,12 +259,14 @@ Scene mainScene() {
 	//rocks
 	std::vector<Object3D> rocks = { assimpLoad("models/rock/scene.gltf", true) };
 	rocks.back().grow(glm::vec3(0.3, 0.3, 0.3));
-	rocks.back().move(glm::vec3(0, -3.7, 0));
+	rocks.back().move(ROCK_DISPLACEMENT);
+	rocks.back().setMass(ROCK_MASS);
 	for (int i = 1; i < TOTAL_ROCK_MAX; i++) {
 		rocks.emplace_back(assimpLoad("models/rock/scene.gltf", true));
 		rocks.back().grow(glm::vec3(0.3, 0.3, 0.3));
 		//the rock origin is (0, -0.7, 0). Preload them below the map to improve framerate.
-		rocks.back().move(glm::vec3(0, -3.7, 0));
+		rocks.back().move(ROCK_DISPLACEMENT);
+		rocks.back().setMass(ROCK_MASS);
 	}
 	
 	//rat
@@ -546,7 +554,6 @@ int main() {
 	int rockCount = TOTAL_ROCK_MAX; //initialize the count of rocks
 	while (running) {
 		
-		
 		sf::Event ev;
 		while (window.pollEvent(ev)) {
 			if (ev.type == sf::Event::Closed) {
@@ -625,6 +632,11 @@ int main() {
 		//calculate speed for movement
 		float movementSpeed = 8.5 * diff.asSeconds();
 		
+		//Tick each object
+		for (Object3D& o : myScene.objects) 
+			o.tick(diff.asSeconds());
+		
+			
 
 		// horizontal movement. Since we only want horizontal movement, we need to leave the y coordinate unchanged
 		// isKeyPressed works independent from event polling and runs wayyyyyyyyyyyyy smoother

@@ -14,6 +14,16 @@ private:
 	glm::vec3 m_scale;
 	glm::vec3 m_center;
 
+	// Newtonian physics components
+	const glm::vec3 GRAVITATIONAL_ACCELERATION = glm::vec3(0, -38, 0);
+	glm::vec3 m_velocity;
+	glm::vec3 m_acceleration;
+	glm::vec3 m_rot_velocity;
+	glm::vec3 m_rot_acceleration;
+	float m_mass;
+	std::vector<glm::vec3> m_forces;
+
+
 	// The object's material.
 	glm::vec4 m_material;
 
@@ -41,6 +51,12 @@ public:
 	const glm::vec3& getCenter() const;
 	const std::string& getName() const;
 	const glm::vec4& getMaterial() const;
+	const glm::vec3& getVelocity() const;
+	const glm::vec3& getAcceleration() const;
+	const glm::vec3& getRotationalVelocity() const;
+	const glm::vec3& getRotationalAcceleration() const;
+	const float& getMass() const;
+	const std::vector<glm::vec3>& getForces() const;
 
 	// Child management.
 	size_t numberOfChildren() const;
@@ -55,12 +71,20 @@ public:
 	void setCenter(const glm::vec3& center);
 	void setName(const std::string& name);
 	void setMaterial(const glm::vec4& material);
+	void setVelocity(const glm::vec3& velocity);
+	void setAcceleration(const glm::vec3& acceleration);
+	void setRotationalVelocity(const glm::vec3& rotVelocity);
+	void setRotationalAcceleration(const glm::vec3& rotAcceleration);
+	void setMass(const float& mass);
+	void addForce(const glm::vec3& force);
+	void clearForces();
 
 	// Transformations.
 	void move(const glm::vec3& offset);
 	void rotate(const glm::vec3& rotation);
 	void grow(const glm::vec3& growth);
 	void addChild(Object3D&& child);
+	void tick(float dt);
 
 	// Rendering.
 	void render(ShaderProgram& shaderProgram) const;

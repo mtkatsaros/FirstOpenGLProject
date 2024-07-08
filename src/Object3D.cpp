@@ -20,8 +20,11 @@ Object3D::Object3D(std::vector<Mesh3D>&& meshes)
 
 Object3D::Object3D(std::vector<Mesh3D>&& meshes, const glm::mat4& baseTransform)
 	: m_meshes(meshes), m_position(), m_orientation(), m_scale(1.0),
-	m_center(), m_baseTransform(baseTransform), m_material(0.1, 1.0, 0.3, 4)
+	m_center(), m_baseTransform(baseTransform), m_material(0.1, 1.0, 0.3, 4), m_velocity(), 
+	m_acceleration(), m_rot_velocity(), m_rot_acceleration(), m_mass(1.0), m_forces()
 {
+	//add gravity because it is a universal constant
+	m_forces.push_back(GRAVITATIONAL_ACCELERATION * m_mass);
 }
 
 const glm::vec3& Object3D::getPosition() const {
@@ -43,6 +46,26 @@ const glm::vec3& Object3D::getCenter() const {
 	return m_center;
 }
 
+const glm::vec3& Object3D::getVelocity() const {
+	return m_velocity;
+}
+const glm::vec3& Object3D::getAcceleration() const {
+	return m_acceleration;
+}
+const glm::vec3& Object3D::getRotationalVelocity() const {
+	return m_rot_velocity;
+}
+const glm::vec3& Object3D::getRotationalAcceleration() const {
+	return m_rot_acceleration;
+}
+const float& Object3D::getMass() const {
+	return m_mass;
+}
+const std::vector<glm::vec3>& Object3D::getForces() const {
+	return m_forces;
+}
+
+
 const std::string& Object3D::getName() const {
 	return m_name;
 }
@@ -62,6 +85,7 @@ const Object3D& Object3D::getChild(size_t index) const {
 Object3D& Object3D::getChild(size_t index) {
 	return m_children[index];
 }
+
 
 void Object3D::setPosition(const glm::vec3& position) {
 	m_position = position;
@@ -90,6 +114,86 @@ void Object3D::setName(const std::string& name) {
 
 void Object3D::setMaterial(const glm::vec4& material) {
 	m_material = material;
+}
+
+void Object3D::setVelocity(const glm::vec3& velocity) {
+	m_velocity = velocity;
+}
+
+void Object3D::setAcceleration(const glm::vec3& acceleration) {
+	m_acceleration = acceleration;
+}
+
+void Object3D::setRotationalVelocity(const glm::vec3& rotVelocity) {
+	m_rot_velocity = rotVelocity;
+}
+
+void Object3D::setRotationalAcceleration(const glm::vec3& rotAcceleration) {
+	m_rot_acceleration = rotAcceleration;
+}
+
+void Object3D::setMass(const float& mass) {
+	m_mass = mass;
+	//since we changed the mass, we must update the acceleration due to gravity
+	clearForces();
+}
+
+void Object3D::addForce(const glm::vec3& force) {
+	m_forces.push_back(force);
+}
+
+// I forgot that c++ removal of elements in vectors needs iterators,
+// so I just decided to make a function that clears all forces to make it 
+// simpler. Here is the Geeks for Geeks link I double checked my work with even though 
+// I didn't really need it lol: https://www.geeksforgeeks.org/vector-erase-and-clear-in-cpp/
+void Object3D::clearForces() {
+	m_forces.clear();
+	//add gravity back because it is a constant force
+	m_forces.push_back(GRAVITATIONAL_ACCELERATION * m_mass);
+}
+
+void Object3D::tick(float dt) {
+	if (m_position.y == 0) {
+		//ternary statement (my JC prof would love me) : flip the sign of the velocity
+		float xSign = (m_velocity.x < 0 ? 1 : -1);
+		float zSign = (m_velocity.z < 0 ? 1 : -1);
+		addForce(glm::vec3(xSign * m_velocity.x, 0, zSign * m_velocity.z) * m_mass);
+
+		//if the object has stopped horizontally, we no longer want to apply friction
+		if (m_velocity.x == 0)
+			clearForces();
+
+		// finally, apply the normal force against gravity
+		addForce(-GRAVITATIONAL_ACCELERATION * m_mass);
+	}
+	// add up all the forces to get the new acceleration (boy do I miss kinematic physics)
+	// update the frictional forces 	
+	glm::vec3 netForce(0, 0, 0);
+	for (glm::vec3 f : m_forces)
+		netForce += f;
+
+	//yes; in Michael physics mass can equal 0. So we must account for that.
+	if(m_mass > 0)
+		m_acceleration = netForce / m_mass;
+
+	//now clear the forces
+	clearForces();
+	//we will make it so that the y coordinate of an object never dips below 0
+	if (m_position.y < 0 && m_mass != 0)
+		m_position = glm::vec3(m_position.x, 0, m_position.z);
+
+	// rebuild the matrix with updated position
+	m_velocity += m_acceleration * dt;
+	m_position += m_velocity * dt;
+	//prevent studdering. This could be fixed in the future with collisions.
+	if (m_position.y < 0)
+		m_position.y = 0;
+	buildModelMatrix();
+		
+	//apply to any children
+	for (auto& c : m_children) {
+		c.tick(dt);
+	}
 }
 
 void Object3D::move(const glm::vec3& offset) {
