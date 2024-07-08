@@ -197,6 +197,26 @@ Texture loadTexture(const std::filesystem::path& path, const std::string& sample
 	return Texture::loadImage(i, samplerName);
 }
 
+const int TOTAL_ROCK_MAX = 100; //needed a global rock maximum since it is accessed in 2 places
+/**
+ * @brief adds a rock to the scene, throws it, and deletes after 10 seconds
+ */
+void throwRock(Scene& scene, glm::vec3 position, int& rockCount) {
+	if (rockCount <= 0) {
+		std::cout << "Out of rocks!" << std::endl;
+		return;
+	}
+	//create the rock on the scene and move it to the character's position
+	//rock
+	auto& rock = scene.objects[rockCount + 2];
+	rock.move(position + glm::vec3(0, 3, 0));
+	
+	//TODO: Implement throwing physics
+
+	//remove that rock
+	rockCount--;
+}
+
 /**
  * @brief My main scene. Holds all the logic for the game.
  */
@@ -229,6 +249,17 @@ Scene mainScene() {
 		trees.back().grow(glm::vec3(10, 10, 10));
 		trees.back().move(glm::vec3(0, 10.5, 0));
 	}
+
+	//rocks
+	std::vector<Object3D> rocks = { assimpLoad("models/rock/scene.gltf", true) };
+	rocks.back().grow(glm::vec3(0.3, 0.3, 0.3));
+	rocks.back().move(glm::vec3(0, -3.7, 0));
+	for (int i = 1; i < TOTAL_ROCK_MAX; i++) {
+		rocks.emplace_back(assimpLoad("models/rock/scene.gltf", true));
+		rocks.back().grow(glm::vec3(0.3, 0.3, 0.3));
+		//the rock origin is (0, -0.7, 0). Preload them below the map to improve framerate.
+		rocks.back().move(glm::vec3(0, -3.7, 0));
+	}
 	
 	//rat
 	auto rat = assimpLoad("models/rat/street_rat_4k.gltf", true);
@@ -240,11 +271,6 @@ Scene mainScene() {
 	monster.grow(glm::vec3(4.5, 4.5, 4.5));
 	monster.move(glm::vec3(28, -1.5, 0));
 
-	//rock
-	auto rock = assimpLoad("models/rock/scene.gltf", true);
-	rock.grow(glm::vec3(0.3, 0.3, 0.3));
-	rock.move(glm::vec3(15, 5, 0));
-
 	//Initialize light values
 	phongInit(scene.program, 32.0);
 
@@ -252,12 +278,14 @@ Scene mainScene() {
 	setToDayTime(scene.program);
 	//setToNightTime(scene.program);
 
-	scene.objects.push_back(std::move(floor));
+	scene.objects.push_back(std::move(floor)); //pos 0
+	scene.objects.push_back(std::move(rat)); //pos 1
+	scene.objects.push_back(std::move(monster)); //pos 2
+	for (Object3D r : rocks) //start at position 3 (desired index + 2)
+		scene.objects.push_back(std::move(r));
 	for (Object3D t : trees)
 		scene.objects.push_back(std::move(t));
-	scene.objects.push_back(std::move(rat));
-	scene.objects.push_back(std::move(monster));
-	scene.objects.push_back(std::move(rock));
+
 	return scene;
 }
 
@@ -515,7 +543,7 @@ int main() {
 	// hide the mouse cursor
 	// sfml documentation for setMouseCursorVisible: https://www.sfml-dev.org/documentation/2.6.1/classsf_1_1Window.php
 	window.setMouseCursorVisible(false);
-
+	int rockCount = TOTAL_ROCK_MAX; //initialize the count of rocks
 	while (running) {
 		
 		
@@ -538,6 +566,10 @@ int main() {
 					break;
 				
 				}
+			}
+			else if (ev.type == sf::Event::MouseButtonPressed) {
+				if (ev.mouseButton.button == sf::Mouse::Button::Left)
+					throwRock(myScene, cameraPos, rockCount);
 			}
 			
 
@@ -592,6 +624,7 @@ int main() {
 		last = now;
 		//calculate speed for movement
 		float movementSpeed = 8.5 * diff.asSeconds();
+		
 
 		// horizontal movement. Since we only want horizontal movement, we need to leave the y coordinate unchanged
 		// isKeyPressed works independent from event polling and runs wayyyyyyyyyyyyy smoother
