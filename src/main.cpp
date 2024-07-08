@@ -240,20 +240,27 @@ Scene mainScene() {
 
 
 	//Trees
-	const int TREE_COUNT = 1;
+	const int TREE_COUNT = 100;
+	glm::vec3 treePos = glm::vec3(-100, 12.5, -100);
 	// Object3D does not have a default constructor, so I cannot initialize the vector size to TREE_COUNT
 	// and perform a range based for loop. This is the work-around so that we do not call any default 
 	// constructors that don't exist.
 	std::vector<Object3D> trees = { assimpLoad("models/tree/scene.gltf", true) };
 	trees.back().setMass(0);
 	trees.back().grow(glm::vec3(10, 10, 10));
-	trees.back().move(glm::vec3(0, 12.5, -50));
+	trees.back().move(treePos);
 	
 
 	for (int i = 1; i < TREE_COUNT; i++) {
 		trees.emplace_back(assimpLoad("models/tree/scene.gltf", true));
+		trees.back().setMass(0);
 		trees.back().grow(glm::vec3(10, 10, 10));
-		trees.back().move(glm::vec3(0, 10.5, 0));
+		trees.back().move(glm::vec3(treePos.x + 20, treePos.y, treePos.z));
+		
+		treePos += glm::vec3(20, 0, 0);
+		if (treePos.x >= 100) {
+			treePos = glm::vec3(-100, treePos.y, treePos.z + 20);
+		}
 	}
 
 	//rocks
@@ -277,14 +284,14 @@ Scene mainScene() {
 	//monster
 	auto monster = assimpLoad("models/monster/scene.gltf", true);
 	monster.grow(glm::vec3(4.5, 4.5, 4.5));
-	monster.move(glm::vec3(28, -1.5, 0));
+	monster.move(glm::vec3(13, -1.5, 33));
 
 	//Initialize light values
 	phongInit(scene.program, 32.0);
 
 	// set time of day by adding directional light
-	setToDayTime(scene.program);
-	//setToNightTime(scene.program);
+	//setToDayTime(scene.program);
+	setToNightTime(scene.program);
 
 	scene.objects.push_back(std::move(floor)); //pos 0
 	scene.objects.push_back(std::move(rat)); //pos 1
