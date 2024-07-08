@@ -203,7 +203,7 @@ const float ROCK_MASS = 0.5;
 /**
  * @brief adds a rock to the scene, throws it, and deletes after 10 seconds
  */
-void throwRock(Scene& scene, glm::vec3 position, int& rockCount) {
+void throwRock(Scene& scene, glm::vec3 position, glm::vec3 direction, int& rockCount) {
 	if (rockCount <= 0) {
 		std::cout << "Out of rocks!" << std::endl;
 		return;
@@ -211,7 +211,7 @@ void throwRock(Scene& scene, glm::vec3 position, int& rockCount) {
 	//create the rock on the scene and move it to the character's position
 	auto& rock = scene.objects[rockCount + 2];
 	rock.move(position - ROCK_DISPLACEMENT);
-	
+	rock.setVelocity(direction * glm::vec3(50,50,50));
 	//TODO: Implement throwing physics
 
 	//remove that rock
@@ -300,120 +300,6 @@ Scene mainScene() {
 /*****************************************************************************************
 *  DEMONSTRATION SCENES
 *****************************************************************************************/
-Scene bunny() {
-	Scene scene{ phongLightingShader() };
-
-	// We assume that (0,0) in texture space is the upper left corner, but some artists use (0,0) in the lower
-	// left corner. In that case, we have to flip the V-coordinate of each UV texture location. The last parameter
-	// to assimpLoad controls this. If you load a model and it looks very strange, try changing the last parameter.
-	auto bunny = assimpLoad("models/bunny_textured.obj", true);
-	bunny.grow(glm::vec3(9, 9, 9));
-	bunny.move(glm::vec3(0.2, -1, 0));
-
-	//Initialize light values
-	phongInit(scene.program, 32.0);
-
-	// Add directional light (high noon)
-	glm::vec3 direction = glm::vec3(0, -1, 0);
-	glm::vec3 ambient = glm::vec3(0.3, 0.3, 0.255);
-	glm::vec3 diffuse = glm::vec3(1, 1, .85);
-	glm::vec3 specular = glm::vec3(1, 1, .85);
-	addDirectionalLight(scene.program, direction, ambient, diffuse, specular);
-
-
-	// Move all objects into the scene's objects list.
-	scene.objects.push_back(std::move(bunny));
-	// Now the "bunny" variable is empty; if we want to refer to the bunny object, we need to reference 
-	// scene.objects[0]
-
-	Animator spinBunny;
-	// Spin the bunny 360 degrees over 10 seconds.
-	spinBunny.addAnimation(std::make_unique<RotationAnimation>(scene.objects[0], 10.0, glm::vec3(0, 2 * M_PI, 0)));
-	
-	// Move all animators into the scene's animators list.
-	scene.animators.push_back(std::move(spinBunny));
-
-	return scene;
-}
-
-
-/**
- * @brief Demonstrates loading a square, oriented as the "floor", with a manually-specified texture
- * that does not come from Assimp.
- */
-Scene marbleSquare() {
-	Scene scene{ phongLightingShader() };
-
-	std::vector<Texture> textures = {
-		loadTexture("models/White_marble_03/Textures_2K/white_marble_03_2k_baseColor.tga", "baseTexture"),
-	};
-
-	//Initialize light values
-	phongInit(scene.program, 32.0);
-
-	// Add directional light (none)
-	glm::vec3 direction = glm::vec3(0, -1, 0);
-	glm::vec3 ambientDir = glm::vec3(0, 0, 0);
-	glm::vec3 diffuseDir = glm::vec3(0, 0, 0);
-	glm::vec3 specularDir = glm::vec3(0, 0, 0);
-	addDirectionalLight(scene.program, direction, ambientDir, diffuseDir, specularDir);
-
-	
-	// Add a point light
-	glm::vec3 position = glm::vec3(0, 0, 0);
-	float constant = 1.0;
-	float linear = 0.09;
-	float quadratic = 0.032;
-	glm::vec3 ambientPoint = glm::vec3(0.1, 0.1, 0.075);
-	glm::vec3 diffusePoint = glm::vec3(.8, .8, .6);
-	glm::vec3 specularPoint = glm::vec3(1, 1, .75);
-	addPointLight(scene.program, position, constant, linear, quadratic, ambientPoint, diffusePoint, specularPoint, 0);
-	
-
-	/*
-	// Add a spotlight
-	glm::vec3 position = glm::vec3(0, 2, 0);
-	glm::vec3 directionSpot = glm::vec3(0, -1, 0);
-	float cutOff = std::cos(glm::radians(12.5));
-	float outerCutOff = std::cos(glm::radians(17.5));
-	float constant = 1.0;
-	float linear = 0.09;
-	float quadratic = 0.032;
-	glm::vec3 ambientSpot = glm::vec3(1, 1, 1);
-	glm::vec3 diffuseSpot = glm::vec3(0.8, 0.8, 0.8);
-	glm::vec3 specularSpot = glm::vec3(1, 1, 1);
-	addSpotLight(scene.program, position, directionSpot, cutOff, outerCutOff, constant, linear, quadratic, ambientSpot, diffuseSpot, specularSpot, 1);
-	*/
-
-	auto mesh = Mesh3D::square(textures);
-	auto floor = Object3D(std::vector<Mesh3D>{mesh});
-	floor.grow(glm::vec3(5, 5, 5));
-	floor.move(glm::vec3(0, -1.5, 0));
-	floor.rotate(glm::vec3(-M_PI / 2, 0, 0));
-
-	scene.objects.push_back(std::move(floor));
-	return scene;
-}
-
-/**
- * @brief Loads a cube with a cube map texture.
- */
-Scene cube() {
-	Scene scene{ texturingShader() };
-
-	auto cube = assimpLoad("models/cube.obj", true);
-
-	scene.objects.push_back(std::move(cube));
-
-	Animator spinCube;
-	spinCube.addAnimation(std::make_unique<RotationAnimation>(scene.objects[0], 10.0, glm::vec3(0, 2 * M_PI, 0)));
-	// Then spin around the x axis.
-	spinCube.addAnimation(std::make_unique<RotationAnimation>(scene.objects[0], 10.0, glm::vec3(2 * M_PI, 0, 0)));
-
-	scene.animators.push_back(std::move(spinCube));
-
-	return scene;
-}
 
 /**
  * @brief Constructs a scene of a tiger sitting in a boat, where the tiger is the child object
@@ -576,7 +462,7 @@ int main() {
 			}
 			else if (ev.type == sf::Event::MouseButtonPressed) {
 				if (ev.mouseButton.button == sf::Mouse::Button::Left)
-					throwRock(myScene, cameraPos, rockCount);
+					throwRock(myScene, cameraPos, glm::normalize(cameraFront), rockCount);
 			}
 			
 

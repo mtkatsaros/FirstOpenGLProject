@@ -15,7 +15,8 @@ private:
 	glm::vec3 m_center;
 
 	// Newtonian physics components
-	const glm::vec3 GRAVITATIONAL_ACCELERATION = glm::vec3(0, -38, 0);
+	const glm::vec3 GRAVITATIONAL_ACCELERATION = glm::vec3(0, -48, 0);
+	const float MU = 2;
 	glm::vec3 m_velocity;
 	glm::vec3 m_acceleration;
 	glm::vec3 m_rot_velocity;

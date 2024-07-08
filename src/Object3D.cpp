@@ -154,10 +154,15 @@ void Object3D::clearForces() {
 
 void Object3D::tick(float dt) {
 	if (m_position.y == 0) {
-		//ternary statement (my JC prof would love me) : flip the sign of the velocity
-		float xSign = (m_velocity.x < 0 ? 1 : -1);
-		float zSign = (m_velocity.z < 0 ? 1 : -1);
-		addForce(glm::vec3(xSign * m_velocity.x, 0, zSign * m_velocity.z) * m_mass);
+		//Add mu : frictional contant of a surface; negative gravity so no need to flip sign
+		float muX = std::abs(GRAVITATIONAL_ACCELERATION.y * MU);
+		float muZ = std::abs(GRAVITATIONAL_ACCELERATION.y * MU);
+		glm::vec3 direction = glm::normalize(glm::vec3(m_velocity.x, 0, m_velocity.z));
+		float xSign = (m_velocity.x < 0.0) ? 1.0 : -1.0;
+		float zSign = (m_velocity.z < 0.0) ? 1.0 : -1.0;
+	
+
+		addForce(glm::vec3(std::abs(direction.x) * xSign * muX * m_mass, 0, std::abs(direction.z) * zSign * muZ * m_mass));
 
 		//if the object has stopped horizontally, we no longer want to apply friction
 		if (m_velocity.x == 0)
@@ -169,7 +174,7 @@ void Object3D::tick(float dt) {
 	// add up all the forces to get the new acceleration (boy do I miss kinematic physics)
 	// update the frictional forces 	
 	glm::vec3 netForce(0, 0, 0);
-	for (glm::vec3 f : m_forces)
+	for (glm::vec3& f : m_forces)
 		netForce += f;
 
 	//yes; in Michael physics mass can equal 0. So we must account for that.
