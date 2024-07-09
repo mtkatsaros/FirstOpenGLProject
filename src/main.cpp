@@ -198,7 +198,7 @@ Texture loadTexture(const std::filesystem::path& path, const std::string& sample
 	return Texture::loadImage(i, samplerName);
 }
 
-const int TOTAL_ROCK_MAX = 1; //needed a global rock maximum since it is accessed in 2 places
+const int TOTAL_ROCK_MAX = 100; //needed a global rock maximum since it is accessed in 2 places
 const glm::vec3 ROCK_DISPLACEMENT = glm::vec3(1000, 0, 0);
 const float ROCK_MASS = 0.5;
 /**
@@ -241,8 +241,8 @@ Scene mainScene() {
 
 
 	//Trees
-	const int TREE_COUNT = 20;
-	glm::vec3 treePos = glm::vec3(-100, 12.5, -100);
+	const int TREE_COUNT = 100;
+	glm::vec3 treePos = glm::vec3(-50, 12.5, -160);
 	// Object3D does not have a default constructor, so I cannot initialize the vector size to TREE_COUNT
 	// and perform a range based for loop. This is the work-around so that we do not call any default 
 	// constructors that don't exist.
@@ -256,11 +256,11 @@ Scene mainScene() {
 		trees.emplace_back(assimpLoad("models/tree/scene.gltf", true));
 		trees.back().setMass(0);
 		trees.back().grow(glm::vec3(10, 10, 10));
-		trees.back().move(glm::vec3(treePos.x + 50, treePos.y, treePos.z));
+		trees.back().move(glm::vec3(treePos.x + 20, treePos.y, treePos.z));
 		
 		treePos += glm::vec3(20, 0, 0);
 		if (treePos.x >= 100) {
-			treePos = glm::vec3(-100, treePos.y, treePos.z + 50);
+			treePos = glm::vec3(-100, treePos.y, treePos.z + 20);
 		}
 	}
 
@@ -292,8 +292,8 @@ Scene mainScene() {
 	phongInit(scene.program, 32.0);
 
 	// set time of day by adding directional light
-	setToDayTime(scene.program);
-	//setToNightTime(scene.program);
+	//setToDayTime(scene.program);
+	setToNightTime(scene.program);
 
 	scene.objects.push_back(std::move(floor)); //pos 0
 	scene.objects.push_back(std::move(rat)); //pos 1
@@ -385,7 +385,7 @@ int main() {
 	settings.antialiasingLevel = 2;  // Request 2 levels of antialiasing
 	settings.majorVersion = 3;
 	settings.minorVersion = 3;
-	sf::Window window(sf::VideoMode{ 2000, 1333 }, "Michael's Scene", sf::Style::Resize | sf::Style::Close, settings);
+	sf::Window window(sf::VideoMode{ 1800, 1200 }, "Michael's Scene", sf::Style::Resize | sf::Style::Close, settings);
 
 	gladLoadGL();
 	glEnable(GL_DEPTH_TEST);
