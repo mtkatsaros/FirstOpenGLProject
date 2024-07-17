@@ -15,4 +15,4 @@ F | Toggle flashlight
 
 Important Information
 ---------------------
-This application performs shader calculations on the GPU. Dedicated graphics are strongly recommended to run this application.
+This application performs shader calculations on the GPU. Dedicated graphics are strongly recommended.
